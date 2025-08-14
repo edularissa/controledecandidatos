@@ -545,6 +545,51 @@
       await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
     }
 
+   /********************
+* Funções do Modal
+********************/
+// Variável global para guardar o candidato atual selecionado no modal
+let activeCandidate = null;
+
+// Função para abrir o modal e preencher com os dados do candidato
+function showCandidateModal(candidate) {
+    activeCandidate = candidate;
+    const job = currentJob();
+    if (!job) return;
+
+    // Preenche o modal
+    modalCandName.textContent = candidate.name;
+    modalCandContact.textContent = candidate.contact || 'Não informado';
+    modalCandNotes.textContent = candidate.notes || 'Sem observações.';
+
+    const cvLink = document.getElementById('modalCandCV');
+    if (candidate.cv) {
+        cvLink.href = candidate.cv;
+        cvLink.style.display = 'block';
+    } else {
+        cvLink.style.display = 'none';
+    }
+
+    // Adiciona as ações aos botões do modal
+    document.getElementById('modalEditBtn').onclick = () => {
+        closeModal();
+        editCandidate(job.id, candidate.id);
+    };
+    document.getElementById('modalDeleteBtn').onclick = () => {
+        closeModal();
+        deleteCandidate(job.id, candidate.id);
+    };
+
+    // Mostra o modal
+    document.getElementById('candidateModal').style.display = 'flex';
+}
+
+// Função para fechar o modal
+function closeModal() {
+    document.getElementById('candidateModal').style.display = 'none';
+    activeCandidate = null;
+}
+
     /********************
      * Export/Import
      ********************/
@@ -597,6 +642,7 @@
   </script>
 </body>
 </html>
+
 
 
 
