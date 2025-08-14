@@ -245,41 +245,41 @@
                     </div>
                 </div>
 
-                <div class="row">
-                    <div class="input grow">
-                        <label>Etapas do processo (pressione Enter para adicionar)</label>
-                        <div class="row">
-                            <input id="stageInput" placeholder="Nova etapa..." />
-                            <button class="btn" id="addStageBtn">Adicionar etapa</button>
-                        </div>
-                        <div id="stagesChips" class="chips"></div>
-                        <div class="muted" style="font-size:12px">Arraste candidatos entre etapas no Kanban.</div>
-                    </div>
-                </div>
+               <div class="row">
+          <div class="input grow">
+            <label>Etapas do processo (pressione Enter para adicionar)</label>
+            <div class="row">
+              <input id="stageInput" placeholder="Nova etapa..." />
+              <button class="btn" id="addStageBtn">Adicionar etapa</button>
+            </div>
+            <div id="stagesChips" class="chips"></div>
+            <div class="muted" style="font-size:12px">Arraste candidatos entre etapas no Kanban.</div>
+          </div>
+        </div>
 
-                <div class="divider"></div>
+        <div class="divider"></div>
 
-                <div class="row">
-                    <div class="input grow">
-                        <label>Adicionar candidato</label>
-                        <input id="candName" placeholder="Nome completo"/>
-                    </div>
-                    <div class="input grow">
-                        <label>Contato</label>
-                        <input id="candContact" placeholder="E-mail, telefone ou @"/>
-                    </div>
-                    <div class="input grow">
-                        <label>Currículo (URL opcional)</label>
-                        <input id="candCV" placeholder="https://..." />
-                    </div>
-                    <button class="btn primary" id="addCandBtn" title="Adiciona na primeira etapa">+ Candidato</button>
-                </div>
-                <div class="row">
-                    <div class="input grow">
-                        <label>Observações (serão salvas no cartão do candidato ao criar)</label>
-                        <textarea id="candNotes" placeholder="Ex.: indicado pelo João, pedir pretensão salarial..."></textarea>
-                    </div>
-                </div>
+        <div class="row">
+          <div class="input grow">
+            <label>Adicionar candidato</label>
+            <input id="candName" placeholder="Nome completo"/>
+          </div>
+          <div class="input grow">
+            <label>Contato</label>
+            <input id="candContact" placeholder="E-mail, telefone ou @"/>
+          </div>
+          <div class="input grow">
+            <label>Currículo (URL opcional)</label>
+            <input id="candCV" placeholder="https://..." />
+          </div>
+          <button class="btn primary" id="addCandBtn" title="Adiciona na primeira etapa">+ Candidato</button>
+        </div>
+        <div class="row">
+          <div class="input grow">
+            <label>Observações (serão salvas no cartão do candidato ao criar)</label>
+            <textarea id="candNotes" placeholder="Ex.: indicado pelo João, pedir pretensão salarial..."></textarea>
+          </div>
+        </div>
 
                 <div class="row">
                     <input id="searchCand" class="grow" placeholder="Buscar candidato por nome/contato/notas..."/>
@@ -770,4 +770,5 @@ addCandBtn.onclick = async () => {
     </script>
 </body>
 </html>
+
 
