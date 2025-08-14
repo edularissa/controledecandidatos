@@ -206,46 +206,49 @@
             </div>
         </header>
 
-        <aside class="sidebar">
-            <h2>Vagas</h2>
-            <div class="row">
-                <input id="jobTitle" placeholder="Título da vaga (ex.: Assistente de DHO)"/>
-            </div>
-            <div class="row">
-                <input id="jobDesc" placeholder="Descrição (resumo curto da vaga)"/>
-            </div>
-            <div class="row">
-                <input id="jobStages" placeholder="Etapas separadas por vírgula (ex.: Recebidos,Triagem,Entrevista,Oferta)"/>
-            </div>
-            <div class="row">
-                <button class="btn primary block" id="addJobBtn">Criar vaga</button>
-            </div>
+        
+    <!-- Sidebar (Vagas) -->
+    <aside class="sidebar">
+      <h2>Vagas</h2>
+      <div class="row">
+        <input id="jobTitle" placeholder="Título da vaga (ex.: Assistente de DHO)"/>
+      </div>
+      <div class="row">
+        <input id="jobDesc" placeholder="Descrição (resumo curto da vaga)"/>
+      </div>
+      <div class="row">
+        <input id="jobStages" placeholder="Etapas separadas por vírgula (ex.: Recebidos,Triagem,Entrevista,Oferta)"/>
+      </div>
+      <div class="row">
+        <button class="btn primary block" id="addJobBtn">Criar vaga</button>
+      </div>
 
-            <div class="divider"></div>
-            <div class="row">
-                <input id="jobSearch" placeholder="Buscar vaga por título..."/>
-            </div>
+      <div class="divider"></div>
+      <div class="row">
+        <input id="jobSearch" placeholder="Buscar vaga por título..."/>
+      </div>
 
-            <div class="jobs-list" id="jobsList"></div>
-            <div class="footer muted">Dica: você pode editar as etapas depois, dentro da vaga.</div>
-        </aside>
+      <div class="jobs-list" id="jobsList"></div>
+      <div class="footer muted">Dica: você pode editar as etapas depois, dentro da vaga.</div>
+    </aside>
 
-        <main class="main">
-            <div id="emptyMain" class="empty">Selecione ou crie uma vaga para começar.</div>
+    <!-- Main (Detalhe da vaga + Kanban) -->
+    <main class="main">
+      <div id="emptyMain" class="empty">Selecione ou crie uma vaga para começar.</div>
 
-            <div id="jobView" style="display:none">
-                <div class="row">
-                    <div class="input grow">
-                        <label>Título da vaga</label>
-                        <input id="editJobTitle"/>
-                    </div>
-                    <div class="input grow">
-                        <label>Descrição</label>
-                        <input id="editJobDesc"/>
-                    </div>
-                </div>
+      <div id="jobView" style="display:none">
+        <div class="row">
+          <div class="input grow">
+            <label>Título da vaga</label>
+            <input id="editJobTitle"/>
+          </div>
+          <div class="input grow">
+            <label>Descrição</label>
+            <input id="editJobDesc"/>
+          </div>
+        </div>
 
-               <div class="row">
+        <div class="row">
           <div class="input grow">
             <label>Etapas do processo (pressione Enter para adicionar)</label>
             <div class="row">
@@ -281,84 +284,18 @@
           </div>
         </div>
 
-                <div class="row">
-                    <input id="searchCand" class="grow" placeholder="Buscar candidato por nome/contato/notas..."/>
-                    <button class="btn ghost" id="deleteJobBtn" title="Excluir vaga atual">Excluir vaga</button>
-                </div>
-
-                <section id="kanban" class="kanban"></section>
-            </div>
-        </main>
-    </div>
-
-    <div id="candidateModal" class="modal-backdrop" style="display: none;">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 id="modalCandNameDisplay"></h3>
-                <div id="modalCandNameEdit" style="display:none;">
-                    <label>Nome:</label>
-                    <input id="editCandName" type="text" />
-                </div>
-                <button class="btn small" onclick="closeModal()">✕</button>
-            </div>
-
-            <div id="modalDisplayView">
-                <div class="row">
-                    <strong>Contato:</strong> <span id="modalCandContactDisplay"></span>
-                </div>
-                <div class="row">
-                    <strong>Currículo:</strong> <a id="modalCandCV" href="#" target="_blank" rel="noopener noreferrer">Ver currículo</a>
-                </div>
-                <div class="row">
-                    <strong>Data de Triagem:</strong> <span id="modalCandTriagemDate"></span>
-                </div>
-                <div class="divider"></div>
-                <h4>Observações:</h4>
-                <p id="modalCandNotesDisplay"></p>
-                <div class="divider"></div>
-                <h4>Feedback:</h4>
-                <p id="modalCandFeedbackDisplay"></p>
-            </div>
-
-            <div id="modalEditView" style="display:none;">
-                <div class="input">
-                    <label>Contato:</label>
-                    <input id="editCandContact" type="text" />
-                </div>
-                <div class="input">
-                    <label>Currículo (URL):</label>
-                    <input id="editCandCV" type="text" />
-                </div>
-                 <div class="input">
-                    <label>Data de Triagem:</label>
-                    <input id="editCandTriagemDate" type="date" />
-                </div>
-                <div class="input">
-                    <label>Observações:</label>
-                    <textarea id="editCandNotes"></textarea>
-                </div>
-                <div class="input">
-                    <label>Feedback:</label>
-                    <textarea id="editCandFeedback"></textarea>
-                </div>
-            </div>
-
-            <div class="modal-footer">
-                <div id="modalViewButtons">
-                    <button class="btn primary" onclick="enterEditMode()">Editar</button>
-                    <button class="btn danger" id="modalDeleteBtn">Excluir</button>
-                </div>
-                <div id="modalEditButtons" style="display:none;">
-                    <button class="btn" onclick="exitEditMode()">Cancelar</button>
-                    <button class="btn primary" onclick="saveEditedCandidate()">Salvar</button>
-                </div>
-            </div>
+        <div class="row">
+          <input id="searchCand" class="grow" placeholder="Buscar candidato por nome/contato/notas..."/>
+          <button class="btn ghost" id="deleteJobBtn" title="Excluir vaga atual">Excluir vaga</button>
         </div>
-    </div>
 
-    <script>
-        /***********************
-        * Mini ATS — lógica com Firebase
+        <section id="kanban" class="kanban"></section>
+      </div>
+    </main>
+  </div>
+
+ <script>
+
         ***********************/
 
         const firebaseConfig = {
@@ -770,5 +707,6 @@ addCandBtn.onclick = async () => {
     </script>
 </body>
 </html>
+
 
 
