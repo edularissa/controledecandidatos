@@ -518,18 +518,26 @@
       await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
     }
 
-    async function editCandidate(jobId, candId){
-      const job = state.jobs.find(j=>j.id===jobId);
-      const c = job?.candidates.find(x=>x.id===candId);
-      if(!c) return;
-      const name = prompt("Nome do candidato:", c.name);
-      if(!name) return;
-      const contact = prompt("Contato (email/telefone/@):", c.contact||'') ?? '';
-      const cv = prompt("URL do currículo (opcional):", c.cv||'') ?? '';
-      const notes = prompt("Observações:", c.notes||'') ?? '';
-      const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, name, contact, cv, notes } : candidate);
-      await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
-    }
+    // Este é o novo código da função editCandidate
+async function editCandidate(jobId, candId) {
+    const job = state.jobs.find(j => j.id === jobId);
+    const c = job?.candidates.find(x => x.id === candId);
+    if (!c) return;
+
+    // Salva o ID do candidato e da vaga no modal para usar depois
+    modalSaveBtn.dataset.jobId = jobId;
+    modalSaveBtn.dataset.candId = candId;
+
+    // Preenche os campos do modal com os dados atuais do candidato
+    document.getElementById('modalCandName').value = c.name || '';
+    document.getElementById('modalCandContact').value = c.contact || '';
+    document.getElementById('modalCandCV').value = c.cv || '';
+    document.getElementById('modalCandTriagem').value = c.triagemDate || '';
+    document.getElementById('modalCandNotes').value = c.notes || '';
+
+    // Exibe o modal
+    document.getElementById('editModal').style.display = 'flex';
+}
 
     async function addNote(jobId, candId){
       const job = state.jobs.find(j=>j.id===jobId);
@@ -605,6 +613,7 @@
   </script>
 </body>
 </html>
+
 
 
 
