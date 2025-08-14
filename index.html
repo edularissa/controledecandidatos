@@ -294,23 +294,50 @@
     <div id="candidateModal" class="modal-backdrop" style="display: none;">
         <div class="modal">
             <div class="modal-header">
-                <h3 id="modalCandName"></h3>
+                <h3 id="modalCandNameDisplay"></h3>
+                <div id="modalCandNameEdit" style="display:none;">
+                    <label>Nome:</label>
+                    <input id="editCandName" type="text" />
+                </div>
                 <button class="btn small" onclick="closeModal()">✕</button>
             </div>
-            <div class="modal-body">
+
+            <div id="modalDisplayView">
                 <div class="row">
-                    <strong>Contato:</strong> <span id="modalCandContact"></span>
+                    <strong>Contato:</strong> <span id="modalCandContactDisplay"></span>
                 </div>
                 <div class="row">
-                    <strong>Currículo:</strong> <a id="modalCandCV" href="#" target="_blank">Ver currículo</a>
+                    <strong>Currículo:</strong> <a id="modalCandCV" href="#" target="_blank" rel="noopener noreferrer">Ver currículo</a>
                 </div>
                 <div class="divider"></div>
                 <h4>Observações:</h4>
-                <p id="modalCandNotes"></p>
+                <p id="modalCandNotesDisplay"></p>
             </div>
+
+            <div id="modalEditView" style="display:none;">
+                <div class="input">
+                    <label>Contato:</label>
+                    <input id="editCandContact" type="text" />
+                </div>
+                <div class="input">
+                    <label>Currículo (URL):</label>
+                    <input id="editCandCV" type="text" />
+                </div>
+                <div class="input">
+                    <label>Observações:</label>
+                    <textarea id="editCandNotes"></textarea>
+                </div>
+            </div>
+
             <div class="modal-footer">
-                <button class="btn primary" id="modalEditBtn">Editar</button>
-                <button class="btn danger" id="modalDeleteBtn">Excluir</button>
+                <div id="modalViewButtons">
+                    <button class="btn primary" onclick="enterEditMode()">Editar</button>
+                    <button class="btn danger" id="modalDeleteBtn">Excluir</button>
+                </div>
+                <div id="modalEditButtons" style="display:none;">
+                    <button class="btn" onclick="exitEditMode()">Cancelar</button>
+                    <button class="btn primary" onclick="saveEditedCandidate()">Salvar</button>
+                </div>
             </div>
         </div>
     </div>
@@ -554,6 +581,7 @@
             await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
         }
 
+        // Esta função de edição por prompt agora está vazia, pois a edição ocorre no modal.
         async function editCandidate(jobId, candId){
             const job = state.jobs.find(j=>j.id===jobId);
             const c = job?.candidates.find(x=>x.id===candId);
@@ -592,19 +620,18 @@
         /********************
         * Funções do Modal
         ********************/
-        // Variável global para guardar o candidato atual selecionado no modal
         let activeCandidate = null;
 
-        // Função para abrir o modal e preencher com os dados do candidato
         function showCandidateModal(candidate) {
             activeCandidate = candidate;
             const job = currentJob();
             if (!job) return;
 
-            // Preenche o modal
-            modalCandName.textContent = candidate.name;
-            modalCandContact.textContent = candidate.contact || 'Não informado';
-            modalCandNotes.textContent = candidate.notes || 'Sem observações.';
+            exitEditMode();
+
+            modalCandNameDisplay.textContent = candidate.name;
+            modalCandContactDisplay.textContent = candidate.contact || 'Não informado';
+            modalCandNotesDisplay.textContent = candidate.notes || 'Sem observações.';
 
             const cvLink = document.getElementById('modalCandCV');
             if (candidate.cv) {
@@ -614,25 +641,69 @@
                 cvLink.style.display = 'none';
             }
 
-            // Adiciona as ações aos botões do modal
-            document.getElementById('modalEditBtn').onclick = () => {
-                closeModal();
-                editCandidate(job.id, candidate.id);
-            };
             document.getElementById('modalDeleteBtn').onclick = () => {
                 closeModal();
                 deleteCandidate(job.id, candidate.id);
             };
 
-            // Mostra o modal
             document.getElementById('candidateModal').style.display = 'flex';
         }
 
-        // Função para fechar o modal
         function closeModal() {
             document.getElementById('candidateModal').style.display = 'none';
             activeCandidate = null;
         }
+
+        function enterEditMode() {
+            document.getElementById('modalDisplayView').style.display = 'none';
+            document.getElementById('modalEditView').style.display = 'block';
+            document.getElementById('modalViewButtons').style.display = 'none';
+            document.getElementById('modalEditButtons').style.display = 'flex';
+
+            document.getElementById('modalCandNameDisplay').style.display = 'none';
+            document.getElementById('modalCandNameEdit').style.display = 'block';
+
+            document.getElementById('editCandName').value = activeCandidate.name;
+            document.getElementById('editCandContact').value = activeCandidate.contact || '';
+            document.getElementById('editCandCV').value = activeCandidate.cv || '';
+            document.getElementById('editCandNotes').value = activeCandidate.notes || '';
+        }
+
+        function exitEditMode() {
+            document.getElementById('modalDisplayView').style.display = 'block';
+            document.getElementById('modalEditView').style.display = 'none';
+            document.getElementById('modalViewButtons').style.display = 'flex';
+            document.getElementById('modalEditButtons').style.display = 'none';
+
+            document.getElementById('modalCandNameDisplay').style.display = 'block';
+            document.getElementById('modalCandNameEdit').style.display = 'none';
+        }
+
+        async function saveEditedCandidate() {
+            const job = currentJob();
+            if (!job || !activeCandidate) return;
+
+            const newName = document.getElementById('editCandName').value.trim();
+            const newContact = document.getElementById('editCandContact').value.trim();
+            const newCv = document.getElementById('editCandCV').value.trim();
+            const newNotes = document.getElementById('editCandNotes').value.trim();
+
+            if (!newName) {
+                alert('O nome do candidato não pode ser vazio.');
+                return;
+            }
+            
+            const updatedCandidates = job.candidates.map(candidate => 
+                candidate.id === activeCandidate.id 
+                    ? { ...candidate, name: newName, contact: newContact, cv: newCv, notes: newNotes } 
+                    : candidate
+            );
+
+            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+
+            closeModal();
+        }
+
 
         /********************
         * Export/Import
