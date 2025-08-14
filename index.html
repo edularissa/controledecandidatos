@@ -565,19 +565,25 @@
         /*************************
         * Ações (Candidatos)
         *************************/
-        addCandBtn.onclick = async () => {
-            const job = currentJob(); if(!job) return;
-            const name = (candName.value||'').trim();
-            if(!name){ alert('Informe o nome do candidato.'); return; }
-            const contact = (candContact.value||'').trim();
-            const cv = (candCV.value||'').trim();
-            const notes = (candNotes.value||'').trim();
-            const firstStage = job.stages[0] || "Recebidos";
-            const newCandidate = cand(name, contact, cv, firstStage, notes);
-            const updatedCandidates = [...job.candidates, newCandidate];
-            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
-            candName.value = candContact.value = candCV.value = candNotes.value = '';
-        };
+        // Dentro do método `addCandBtn.onclick`
+addCandBtn.onclick = async () => {
+  const job = currentJob();
+  if (!job) return;
+
+  const name = (candName.value || '').trim();
+  if (!name) {
+    alert('Informe o nome do candidato.');
+    return;
+  }
+  const contact = (candContact.value || '').trim();
+  const cv = (candCV.value || '').trim();
+  const notes = (candNotes.value || '').trim();
+  const firstStage = job.stages[0] || "Recebidos";
+  const newCandidate = cand(name, contact, cv, firstStage, notes);
+  const updatedCandidates = [...job.candidates, newCandidate];
+  await db.collection("jobs").doc(job.id).set({ candidates: updatedCandidates }, { merge: true }); // AQUI ESTÁ A MUDANÇA
+  candName.value = candContact.value = candCV.value = candNotes.value = '';
+};
 
         searchCand.oninput = ()=>{ const job = currentJob(); if(job) renderKanban(job); };
 
@@ -764,4 +770,5 @@
     </script>
 </body>
 </html>
+
 
