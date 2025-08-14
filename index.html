@@ -428,7 +428,7 @@
             job.stages.forEach((stg, idx) => {
                 const chip = document.createElement('span');
                 chip.className = 'chip';
-                chip.innerHTML = <span>${escapeHTML(stg)}</span><span class="x" title="Remover">✕</span>;
+                chip.innerHTML = `<span>${escapeHTML(stg)}</span><span class="x" title="Remover">✕</span>`;
                 chip.querySelector('.x').onclick = async () => {
                     const fallback = job.stages[idx-1] || job.stages[0];
                     const newCandidates = job.candidates.map(c => c.stage===stg ? {...c, stage:fallback} : c);
@@ -496,14 +496,14 @@
                     card.innerHTML = `
                         <div class="title nowrap">${escapeHTML(c.name)}</div>
                         <div class="meta nowrap">${escapeHTML(c.contact||'')}</div>
-                        ${c.notes ? <div class="notes nowrap">${escapeHTML(c.notes)}</div> : ''}
+                        ${c.notes ? `<div class="notes nowrap">${escapeHTML(c.notes)}</div>` : ''}
                     `;
                     dropzone.appendChild(card);
                 });
 
                 kanban.appendChild(col);
                 const count = list.length;
-                header.querySelector(#count-${cssId(stage)}).textContent = count;
+                header.querySelector(`#count-${cssId(stage)}`).textContent = count;
             });
         }
 
@@ -548,7 +548,7 @@
 
         deleteJobBtn.onclick = async () => {
             const job = currentJob(); if(!job) return;
-            if(!confirm(Excluir a vaga "${job.title}"?)) return;
+            if(!confirm(`Excluir a vaga "${job.title}"?`)) return;
             await db.collection("jobs").doc(job.id).delete();
             state.selectedJobId = null;
         };
@@ -612,7 +612,7 @@
             if(!job) return;
             const candObj = job.candidates.find(x=>x.id===candId);
             if(!candObj) return;
-            if(!confirm(Excluir o candidato "${candObj.name}"?)) return;
+            if(!confirm(`Excluir o candidato "${candObj.name}"?`)) return;
             const updatedCandidates = job.candidates.filter(x=>x.id!==candId);
             await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
         }
@@ -712,7 +712,7 @@
             const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = mini-ats-${new Date().toISOString().slice(0,10)}.json;
+            a.download = `mini-ats-${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
         };
