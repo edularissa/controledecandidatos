@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Mini ATS — Vagas & Candidatos</title>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
   <style>
     :root{
       --bg:#0f172a;           /* slate-900 */
@@ -235,390 +239,335 @@
     </main>
   </div>
 
-  <script>
-    /***********************
-     * Mini ATS — lógica
-     ***********************/
-    const storeKey = 'miniATS.v1';
+ <script>
+    /***********************
+     * Mini ATS — lógica com Firebase
+     ***********************/
 
-    /** @type {{jobs: Job[], selectedJobId: string|null}} */
-    let state = load() || seed();
+    // SEU CÓDIGO DE CONFIGURAÇÃO DO FIREBASE
+    const firebaseConfig = {
+      apiKey: "AIzaSyDFJSkoKJPRsCBmxHR-ye4W7JEj6KtOEtI",
+      authDomain: "gestao-de-candidatos-9210c.firebaseapp.com",
+      projectId: "gestao-de-candidatos-9210c",
+      storageBucket: "gestao-de-candidatos-9210c.firebasestorage.app",
+      messagingSenderId: "832627853482",
+      appId: "1:832627853482:web:4ca4ae8bc0023416cb68d3"
+    };
 
-    function seed(){
-      const sample = {
-        jobs: [
-          {
-            id: uid(), title: "Assistente de DHO", description: "Apoio em R&S, endomarketing, indicadores.",
-            stages: ["Recebidos","Triagem","Entrevista","Teste","Oferta","Contratados"],
-            candidates: [
-              cand("Maria Silva","maria@email.com","","Recebidos","Currículo forte em R&S."),
-              cand("Pedro Santos","@pedros","", "Triagem","Checar disponibilidade."),
-              cand("Ana Lima","(47) 9xxxx-xxxx","", "Entrevista","Feedback técnico positivo."),
-            ]
-          },
-          {
-            id: uid(), title: "Analista Financeiro", description: "Contas, conciliação e relatórios.",
-            stages: ["Recebidos","Pré-seleção","Painel","Gestor","Contratados"],
-            candidates: [
-              cand("João Carvalho","joao@email.com","","Pré-seleção","Experiência com ERP."),
-            ]
-          }
-        ],
-        selectedJobId: null
-      };
-      save(sample);
-      return sample;
-    }
+    // Inicialização do Firebase e do Firestore
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
 
-    function uid(){
-      return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
-    }
+    // state agora será atualizado pelo Firebase
+    let state = { jobs: [], selectedJobId: null };
 
-    /** @typedef {{id:string, title:string, description:string, stages:string[], candidates: Candidate[]}} Job */
-    /** @typedef {{id:string, name:string, contact:string, cv?:string, notes?:string, stage:string, createdAt:number}} Candidate */
+    // Funções de persistência local (save, load, seed) não são mais usadas
+    function uid(){
+      return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+    }
+    
+    /** @typedef {{id:string, title:string, description:string, stages:string[], candidates: Candidate[]}} Job */
+    /** @typedef {{id:string, name:string, contact:string, cv?:string, notes?:string, stage:string, createdAt:number}} Candidate */
 
-    function cand(name, contact, cv, stage, notes){
-      return { id: uid(), name, contact, cv, notes, stage, createdAt: Date.now() };
-    }
+    function cand(name, contact, cv, stage, notes){
+      return { id: uid(), name, contact, cv, notes, stage, createdAt: Date.now() };
+    }
 
-    function save(s=state){ localStorage.setItem(storeKey, JSON.stringify(s)); }
-    function load(){ try{ return JSON.parse(localStorage.getItem(storeKey)); } catch(e){ return null } }
+    function render(){
+      renderJobsList();
+      renderMain();
+    }
 
-    // DOM refs
-    const jobsList = document.getElementById('jobsList');
-    const jobSearch = document.getElementById('jobSearch');
-    const jobTitle = document.getElementById('jobTitle');
-    const jobDesc = document.getElementById('jobDesc');
-    const jobStages = document.getElementById('jobStages');
-    const addJobBtn = document.getElementById('addJobBtn');
+    function renderJobsList(){
+      const filter = (jobSearch.value||"").toLowerCase().trim();
+      const list = state.jobs.filter(j => j.title.toLowerCase().includes(filter));
+      jobsList.innerHTML = '';
+      if (!list.length){
+        const div = document.createElement('div');
+        div.className = 'empty';
+        div.textContent = 'Nenhuma vaga encontrada.';
+        jobsList.appendChild(div);
+        return;
+      }
+      list.forEach(job => {
+        const card = document.createElement('div');
+        card.className = 'job-card' + (state.selectedJobId===job.id?' active':'');
+        card.innerHTML = `
+          <div class="row" style="justify-content:space-between">
+            <div class="job-title nowrap">${escapeHTML(job.title)}</div>
+            <div class="badge">${job.candidates.length}</div>
+          </div>
+          <div class="job-desc nowrap">${escapeHTML(job.description||'Sem descrição')}</div>
+        `;
+        card.onclick = () => { state.selectedJobId = job.id; render(); };
+        jobsList.appendChild(card);
+      });
+    }
 
-    const emptyMain = document.getElementById('emptyMain');
-    const jobView = document.getElementById('jobView');
-    const editJobTitle = document.getElementById('editJobTitle');
-    const editJobDesc = document.getElementById('editJobDesc');
-    const stageInput = document.getElementById('stageInput');
-    const addStageBtn = document.getElementById('addStageBtn');
-    const stagesChips = document.getElementById('stagesChips');
+    function renderMain(){
+      const job = currentJob();
+      if (!job){
+        emptyMain.style.display = '';
+        jobView.style.display = 'none';
+        return;
+      }
+      emptyMain.style.display = 'none';
+      jobView.style.display = '';
 
-    const candName = document.getElementById('candName');
-    const candContact = document.getElementById('candContact');
-    const candCV = document.getElementById('candCV');
-    const candNotes = document.getElementById('candNotes');
-    const addCandBtn = document.getElementById('addCandBtn');
-    const searchCand = document.getElementById('searchCand');
-    const deleteJobBtn = document.getElementById('deleteJobBtn');
+      editJobTitle.value = job.title;
+      editJobDesc.value = job.description||'';
+      renderStagesChips(job);
+      renderKanban(job);
+    }
 
-    const kanban = document.getElementById('kanban');
+    function renderStagesChips(job){
+      stagesChips.innerHTML = '';
+      job.stages.forEach((stg, idx) => {
+        const chip = document.createElement('span');
+        chip.className = 'chip';
+        chip.innerHTML = `<span>${escapeHTML(stg)}</span><span class="x" title="Remover">✕</span>`;
+        chip.querySelector('.x').onclick = async () => {
+          const fallback = job.stages[idx-1] || job.stages[0];
+          const newCandidates = job.candidates.map(c => c.stage===stg ? {...c, stage:fallback} : c);
+          const newStages = job.stages.filter((_, i) => i !== idx);
+          await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
+        };
+        chip.ondblclick = async () => {
+          const novo = prompt('Renomear etapa:', stg);
+          if (!novo) return;
+          const prev = stg;
+          const newStages = job.stages.map(s => s === prev ? novo : s);
+          const newCandidates = job.candidates.map(c => c.stage===prev ? {...c, stage:novo} : c);
+          await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
+        };
+        stagesChips.appendChild(chip);
+      });
+    }
 
-    const exportBtn = document.getElementById('exportBtn');
-    const importFile = document.getElementById('importFile');
-    const resetBtn = document.getElementById('resetBtn');
+    function renderKanban(job){
+      const q = (searchCand.value||'').toLowerCase().trim();
+      kanban.innerHTML = '';
+      job.stages.forEach(stage => {
+        const col = document.createElement('div');
+        col.className = 'col';
+        col.dataset.stage = stage;
 
-    /***************
-     * Render geral
-     ***************/
-    function render(){
-      renderJobsList();
-      renderMain();
-    }
+        const header = document.createElement('div');
+        header.className = 'col-header';
+        header.innerHTML = `
+          <div class="row" style="gap:8px">
+            <strong>${escapeHTML(stage)}</strong>
+          </div>
+          <span class="badge" id="count-${cssId(stage)}">0</span>
+        `;
+        col.appendChild(header);
 
-    function renderJobsList(){
-      const filter = (jobSearch.value||"").toLowerCase().trim();
-      const list = state.jobs.filter(j => j.title.toLowerCase().includes(filter));
-      jobsList.innerHTML = '';
-      if (!list.length){
-        const div = document.createElement('div');
-        div.className = 'empty';
-        div.textContent = 'Nenhuma vaga encontrada.';
-        jobsList.appendChild(div);
-        return;
-      }
-      list.forEach(job => {
-        const card = document.createElement('div');
-        card.className = 'job-card' + (state.selectedJobId===job.id?' active':'');
-        card.innerHTML = `
-          <div class="row" style="justify-content:space-between">
-            <div class="job-title nowrap">${escapeHTML(job.title)}</div>
-            <div class="badge">${job.candidates.length}</div>
-          </div>
-          <div class="job-desc nowrap">${escapeHTML(job.description||'Sem descrição')}</div>
-        `;
-        card.onclick = () => { state.selectedJobId = job.id; save(); render(); };
-        jobsList.appendChild(card);
-      });
-    }
+        const dropzone = document.createElement('div');
+        dropzone.className = 'dropzone';
+        dropzone.ondragover = (e)=>{ e.preventDefault(); dropzone.classList.add('hover'); };
+        dropzone.ondragleave = ()=> dropzone.classList.remove('hover');
+        dropzone.ondrop = (e)=>{
+          e.preventDefault();
+          dropzone.classList.remove('hover');
+          const candId = e.dataTransfer.getData('text/plain');
+          moveCandidate(job.id, candId, stage);
+        };
+        col.appendChild(dropzone);
 
-    function renderMain(){
-      const job = currentJob();
-      if (!job){
-        emptyMain.style.display = '';
-        jobView.style.display = 'none';
-        return;
-      }
-      emptyMain.style.display = 'none';
-      jobView.style.display = '';
+        const list = job.candidates
+          .filter(c => c.stage===stage)
+          .filter(c => !q || (c.name+c.contact+(c.notes||'')).toLowerCase().includes(q))
+          .sort((a,b)=>a.createdAt-b.createdAt);
 
-      // header edição vaga
-      editJobTitle.value = job.title;
-      editJobDesc.value = job.description||'';
-      renderStagesChips(job);
-      renderKanban(job);
-    }
+        list.forEach(c => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.draggable = true;
+          card.ondragstart = (e)=>{ e.dataTransfer.setData('text/plain', c.id); };
+          card.innerHTML = `
+            <div class="title nowrap">${escapeHTML(c.name)}</div>
+            <div class="meta nowrap">${escapeHTML(c.contact||'')}</div>
+            ${c.cv ? `<a href="${escapeAttr(c.cv)}" target="_blank" rel="noopener noreferrer" class="meta">Currículo</a>` : ''}
+            ${c.notes ? `<div class="notes">${escapeHTML(c.notes)}</div>` : ''}
+            <div class="row">
+              <button class="btn small" data-action="edit">Editar</button>
+              <div class="row" style="gap:6px">
+                <button class="btn small ghost" data-action="note">+ Nota</button>
+                <button class="btn small danger" data-action="del">Excluir</button>
+              </div>
+            </div>
+          `;
+          card.querySelector('[data-action="edit"]').onclick = ()=> editCandidate(job.id, c.id);
+          card.querySelector('[data-action="note"]').onclick = ()=> addNote(job.id, c.id);
+          card.querySelector('[data-action="del"]').onclick = ()=> deleteCandidate(job.id, c.id);
+          dropzone.appendChild(card);
+        });
 
-    function renderStagesChips(job){
-      stagesChips.innerHTML = '';
-      job.stages.forEach((stg, idx) => {
-        const chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.innerHTML = `<span>${escapeHTML(stg)}</span><span class="x" title="Remover">✕</span>`;
-        chip.querySelector('.x').onclick = () => {
-          // ao remover etapa, mover candidatos para a etapa anterior ou primeira
-          const fallback = job.stages[idx-1] || job.stages[0];
-          job.candidates = job.candidates.map(c => c.stage===stg ? {...c, stage:fallback} : c);
-          job.stages.splice(idx,1);
-          save(); render();
-        };
-        // duplo clique para renomear
-        chip.ondblclick = () => {
-          const novo = prompt('Renomear etapa:', stg);
-          if (!novo) return;
-          const prev = stg;
-          job.stages[idx] = novo;
-          job.candidates = job.candidates.map(c => c.stage===prev ? {...c, stage:novo} : c);
-          save(); render();
-        };
-        stagesChips.appendChild(chip);
-      });
-    }
+        kanban.appendChild(col);
+        // contador
+        const count = list.length;
+        header.querySelector(`#count-${cssId(stage)}`).textContent = count;
+      });
+    }
 
-    function renderKanban(job){
-      const q = (searchCand.value||'').toLowerCase().trim();
-      kanban.innerHTML = '';
-      job.stages.forEach(stage => {
-        const col = document.createElement('div');
-        col.className = 'col';
-        col.dataset.stage = stage;
+    /******************
+     * Ações (Vagas)
+     ******************/
+    addJobBtn.onclick = async () => {
+      const title = jobTitle.value.trim();
+      if(!title){ alert('Informe um título para a vaga.'); return; }
+      const description = jobDesc.value.trim();
+      const stages = (jobStages.value || "Recebidos,Triagem,Entrevista,Contratados")
+        .split(",")
+        .map(s => s.trim())
+        .filter(Boolean);
+      const newJob = { title, description, stages, candidates: [] };
+      await db.collection("jobs").add(newJob);
+      jobTitle.value = jobDesc.value = jobStages.value = '';
+    };
 
-        const header = document.createElement('div');
-        header.className = 'col-header';
-        header.innerHTML = `
-          <div class="row" style="gap:8px">
-            <strong>${escapeHTML(stage)}</strong>
-          </div>
-          <span class="badge" id="count-${cssId(stage)}">0</span>
-        `;
-        col.appendChild(header);
+    editJobTitle.oninput = async () => {
+      const job = currentJob(); if(!job) return;
+      await db.collection("jobs").doc(job.id).update({ title: editJobTitle.value });
+    };
+    editJobDesc.oninput = async () => {
+      const job = currentJob(); if(!job) return;
+      await db.collection("jobs").doc(job.id).update({ description: editJobDesc.value });
+    };
 
-        const dropzone = document.createElement('div');
-        dropzone.className = 'dropzone';
-        dropzone.ondragover = (e)=>{ e.preventDefault(); dropzone.classList.add('hover'); };
-        dropzone.ondragleave = ()=> dropzone.classList.remove('hover');
-        dropzone.ondrop = (e)=>{
-          e.preventDefault();
-          dropzone.classList.remove('hover');
-          const candId = e.dataTransfer.getData('text/plain');
-          moveCandidate(job.id, candId, stage);
-        };
-        col.appendChild(dropzone);
+    addStageBtn.onclick = addStageFromInput;
+    stageInput.addEventListener('keydown', (e)=>{
+      if(e.key==='Enter'){ e.preventDefault(); addStageFromInput(); }
+    });
+    async function addStageFromInput(){
+      const job = currentJob(); if(!job) return;
+      const val = stageInput.value.trim();
+      if(!val) return;
+      if(job.stages.includes(val)){ alert('Etapa já existe.'); return; }
+      const newStages = [...job.stages, val];
+      await db.collection("jobs").doc(job.id).update({ stages: newStages });
+      stageInput.value = '';
+    }
 
-        const list = job.candidates
-          .filter(c => c.stage===stage)
-          .filter(c => !q || (c.name+c.contact+(c.notes||'')).toLowerCase().includes(q))
-          .sort((a,b)=>a.createdAt-b.createdAt);
+    deleteJobBtn.onclick = async () => {
+      const job = currentJob(); if(!job) return;
+      if(!confirm(`Excluir a vaga "${job.title}"?`)) return;
+      await db.collection("jobs").doc(job.id).delete();
+      state.selectedJobId = null;
+    };
 
-        list.forEach(c => {
-          const card = document.createElement('div');
-          card.className = 'card';
-          card.draggable = true;
-          card.ondragstart = (e)=>{ e.dataTransfer.setData('text/plain', c.id); };
-          card.innerHTML = `
-            <div class="title nowrap">${escapeHTML(c.name)}</div>
-            <div class="meta nowrap">${escapeHTML(c.contact||'')}</div>
-            ${c.cv ? `<a href="${escapeAttr(c.cv)}" target="_blank" rel="noopener noreferrer" class="meta">Currículo</a>` : ''}
-            ${c.notes ? `<div class="notes">${escapeHTML(c.notes)}</div>` : ''}
-            <div class="row">
-              <button class="btn small" data-action="edit">Editar</button>
-              <div class="row" style="gap:6px">
-                <button class="btn small ghost" data-action="note">+ Nota</button>
-                <button class="btn small danger" data-action="del">Excluir</button>
-              </div>
-            </div>
-          `;
-          card.querySelector('[data-action="edit"]').onclick = ()=> editCandidate(job.id, c.id);
-          card.querySelector('[data-action="note"]').onclick = ()=> addNote(job.id, c.id);
-          card.querySelector('[data-action="del"]').onclick = ()=> deleteCandidate(job.id, c.id);
-          dropzone.appendChild(card);
-        });
+    jobSearch.oninput = renderJobsList;
 
-        kanban.appendChild(col);
-        // contador
-        const count = list.length;
-        header.querySelector(`#count-${cssId(stage)}`).textContent = count;
-      });
-    }
+    /*************************
+     * Ações (Candidatos)
+     *************************/
+    addCandBtn.onclick = async () => {
+      const job = currentJob(); if(!job) return;
+      const name = (candName.value||'').trim();
+      if(!name){ alert('Informe o nome do candidato.'); return; }
+      const contact = (candContact.value||'').trim();
+      const cv = (candCV.value||'').trim();
+      const notes = (candNotes.value||'').trim();
+      const firstStage = job.stages[0] || "Recebidos";
+      const newCandidate = cand(name, contact, cv, firstStage, notes);
+      const updatedCandidates = [...job.candidates, newCandidate];
+      await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+      candName.value = candContact.value = candCV.value = candNotes.value = '';
+    };
 
-    /******************
-     * Ações (Vagas)
-     ******************/
-    addJobBtn.onclick = ()=>{
-      const title = jobTitle.value.trim();
-      if(!title){ alert('Informe um título para a vaga.'); return; }
-      const description = jobDesc.value.trim();
-      const stages = (jobStages.value || "Recebidos,Triagem,Entrevista,Contratados")
-        .split(",")
-        .map(s=>s.trim())
-        .filter(Boolean);
-      const job = { id: uid(), title, description, stages, candidates: [] };
-      state.jobs.unshift(job);
-      state.selectedJobId = job.id;
-      jobTitle.value = jobDesc.value = jobStages.value = '';
-      save(); render();
-    };
+    searchCand.oninput = ()=>{ const job = currentJob(); if(job) renderKanban(job); };
 
-    editJobTitle.oninput = ()=>{
-      const job = currentJob(); if(!job) return;
-      job.title = editJobTitle.value;
-      save(); renderJobsList();
-    };
-    editJobDesc.oninput = ()=>{
-      const job = currentJob(); if(!job) return;
-      job.description = editJobDesc.value;
-      save();
-    };
+    async function moveCandidate(jobId, candId, stage){
+      const job = state.jobs.find(j=>j.id===jobId);
+      if(!job) return;
+      const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, stage } : candidate);
+      await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
+    }
 
-    addStageBtn.onclick = addStageFromInput;
-    stageInput.addEventListener('keydown', (e)=>{
-      if(e.key==='Enter'){ e.preventDefault(); addStageFromInput(); }
-    });
-    function addStageFromInput(){
-      const job = currentJob(); if(!job) return;
-      const val = stageInput.value.trim();
-      if(!val) return;
-      if(job.stages.includes(val)){ alert('Etapa já existe.'); return; }
-      job.stages.push(val);
-      stageInput.value = '';
-      save(); render();
-    }
+    async function editCandidate(jobId, candId){
+      const job = state.jobs.find(j=>j.id===jobId);
+      const c = job?.candidates.find(x=>x.id===candId);
+      if(!c) return;
+      const name = prompt("Nome do candidato:", c.name);
+      if(!name) return;
+      const contact = prompt("Contato (email/telefone/@):", c.contact||'') ?? '';
+      const cv = prompt("URL do currículo (opcional):", c.cv||'') ?? '';
+      const notes = prompt("Observações:", c.notes||'') ?? '';
+      const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, name, contact, cv, notes } : candidate);
+      await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
+    }
 
-    deleteJobBtn.onclick = ()=>{
-      const job = currentJob(); if(!job) return;
-      if(!confirm(`Excluir a vaga "${job.title}"?`)) return;
-      state.jobs = state.jobs.filter(j=>j.id!==job.id);
-      state.selectedJobId = null;
-      save(); render();
-    };
+    async function addNote(jobId, candId){
+      const job = state.jobs.find(j=>j.id===jobId);
+      const c = job?.candidates.find(x=>x.id===candId);
+      if(!c) return;
+      const extra = prompt("Adicionar observação:", "");
+      if(extra){
+        const newNotes = (c.notes? c.notes+"\n" : "") + "• " + extra;
+        const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, notes: newNotes } : candidate);
+        await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
+      }
+    }
 
-    jobSearch.oninput = renderJobsList;
+    async function deleteCandidate(jobId, candId){
+      const job = state.jobs.find(j=>j.id===jobId);
+      if(!job) return;
+      const candObj = job.candidates.find(x=>x.id===candId);
+      if(!candObj) return;
+      if(!confirm(`Excluir o candidato "${candObj.name}"?`)) return;
+      const updatedCandidates = job.candidates.filter(x=>x.id!==candId);
+      await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
+    }
 
-    /*************************
-     * Ações (Candidatos)
-     *************************/
-    addCandBtn.onclick = ()=>{
-      const job = currentJob(); if(!job) return;
-      const name = (candName.value||'').trim();
-      if(!name){ alert('Informe o nome do candidato.'); return; }
-      const contact = (candContact.value||'').trim();
-      const cv = (candCV.value||'').trim();
-      const notes = (candNotes.value||'').trim();
-      const firstStage = job.stages[0] || "Recebidos";
-      job.candidates.push(cand(name, contact, cv, firstStage, notes));
-      candName.value = candContact.value = candCV.value = candNotes.value = '';
-      save(); renderKanban(job);
-      renderJobsList();
-    };
+    /********************
+     * Export/Import
+     ********************/
+    exportBtn.onclick = ()=>{
+      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `mini-ats-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    importFile.onchange = (e)=>{
+      const file = e.target.files?.[0];
+      if(!file) return;
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
+          data.jobs.forEach(job => db.collection("jobs").add(job));
+        }catch(err){
+          alert("Falha ao importar: " + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    };
+    resetBtn.onclick = async ()=>{
+      if(!confirm("Isto apagará todas as vagas e candidatos salvos no banco de dados. Continuar?")) return;
+      const jobsRef = db.collection("jobs");
+      const jobsSnapshot = await jobsRef.get();
+      jobsSnapshot.docs.forEach(doc => doc.ref.delete());
+    };
 
-    searchCand.oninput = ()=>{ const job = currentJob(); if(job) renderKanban(job); };
+    /********************
+     * Helpers
+     ********************/
+    function currentJob(){
+      return state.jobs.find(j=>j.id===state.selectedJobId) || null;
+    }
+    function escapeHTML(str){ return (str??'').toString().replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s])); }
+    function escapeAttr(str){ return escapeHTML(str).replace(/"/g,'&quot;'); }
+    function cssId(s){ return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9_-]/g,''); }
 
-    function moveCandidate(jobId, candId, stage){
-      const job = state.jobs.find(j=>j.id===jobId);
-      if(!job) return;
-      const c = job.candidates.find(x=>x.id===candId);
-      if(!c) return;
-      c.stage = stage;
-      save(); renderKanban(job);
-    }
-
-    function editCandidate(jobId, candId){
-      const job = state.jobs.find(j=>j.id===jobId);
-      const c = job?.candidates.find(x=>x.id===candId);
-      if(!c) return;
-      const name = prompt("Nome do candidato:", c.name);
-      if(!name) return;
-      const contact = prompt("Contato (email/telefone/@):", c.contact||'') ?? '';
-      const cv = prompt("URL do currículo (opcional):", c.cv||'') ?? '';
-      const notes = prompt("Observações:", c.notes||'') ?? '';
-      Object.assign(c, { name, contact, cv, notes });
-      save(); render();
-    }
-
-    function addNote(jobId, candId){
-      const job = state.jobs.find(j=>j.id===jobId);
-      const c = job?.candidates.find(x=>x.id===candId);
-      if(!c) return;
-      const extra = prompt("Adicionar observação:", "");
-      if(extra){
-        c.notes = (c.notes? c.notes+"\n" : "") + "• " + extra;
-        save(); renderKanban(job);
-      }
-    }
-
-    function deleteCandidate(jobId, candId){
-      const job = state.jobs.find(j=>j.id===jobId);
-      if(!job) return;
-      const candObj = job.candidates.find(x=>x.id===candId);
-      if(!candObj) return;
-      if(!confirm(`Excluir o candidato "${candObj.name}"?`)) return;
-      job.candidates = job.candidates.filter(x=>x.id!==candId);
-      save(); render();
-    }
-
-    /********************
-     * Export/Import
-     ********************/
-    exportBtn.onclick = ()=>{
-      const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `mini-ats-${new Date().toISOString().slice(0,10)}.json`;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    };
-    importFile.onchange = (e)=>{
-      const file = e.target.files?.[0];
-      if(!file) return;
-      const reader = new FileReader();
-      reader.onload = ()=>{
-        try{
-          const data = JSON.parse(reader.result);
-          if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
-          state = data;
-          save(); render();
-        }catch(err){
-          alert("Falha ao importar: " + err.message);
-        }
-      };
-      reader.readAsText(file);
-      e.target.value = '';
-    };
-    resetBtn.onclick = ()=>{
-      if(!confirm("Isto apagará todas as vagas e candidatos salvos neste navegador. Continuar?")) return;
-      localStorage.removeItem(storeKey);
-      state = seed();
-      render();
-    };
-
-    /********************
-     * Helpers
-     ********************/
-    function currentJob(){
-      return state.jobs.find(j=>j.id===state.selectedJobId) || null;
-    }
-    function escapeHTML(str){ return (str??'').toString().replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s])); }
-    function escapeAttr(str){ return escapeHTML(str).replace(/"/g,'&quot;'); }
-    function cssId(s){ return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9_-]/g,''); }
-
-    // inicializa
-    render();
-  </script>
+    // A aplicação é inicializada buscando os dados do Firebase em tempo real
+    db.collection("jobs").onSnapshot((snapshot) => {
+      state.jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      render();
+    });
+  </script>
 </body>
 </html>
