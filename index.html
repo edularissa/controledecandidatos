@@ -365,56 +365,59 @@
     </div>
 
 <div id="candidateModal" class="modal-backdrop" style="display: none;">
-    <div class="modal">
-        <div class="modal-header">
-            <h3 id="modalCandNameDisplay"></h3>
-            <div id="modalCandNameEdit" style="display:none;">
-                <label>Nome:</label>
-                <input id="editCandName" type="text" />
-            </div>
-            <button class="btn small" onclick="closeModal()">✕</button>
+<div class="modal">
+    <div class="modal-header">
+        <h3 id="modalCandNameDisplay"></h3>
+        <div id="modalCandNameEdit" style="display:none;">
+            <label>Nome:</label>
+            <input id="editCandName" type="text" />
         </div>
-        
-        <div id="modalDisplayView">
-            <div class="row">
-                <strong>Contato:</strong> <span id="modalCandContactDisplay"></span>
-            </div>
-            <div class="row">
-                <strong>Currículo:</strong> <a id="modalCandCV" href="#" target="_blank" rel="noopener noreferrer">Ver currículo</a>
-            </div>
-            <div class="divider"></div>
-            <h4>Observações:</h4>
-            <p id="modalCandNotesDisplay"></p>
-            <div class="input" id="triagemDateInput">
-                <label>Data de Triagem:</label>
-                <input id="editCandTriagemDate" type="date" disabled />
-            </div>
-        </div>
+        <button class="btn small" onclick="closeModal()">✕</button>
+    </div>
 
-        <div id="modalEditView" style="display: none;">
-            <div class="input">
-                <label>Contato</label>
-                <input id="editCandContact" placeholder="E-mail, telefone ou @" />
-            </div>
-            <div class="input">
-                <label>Currículo (URL opcional)</label>
-                <input id="editCandCV" placeholder="https://..." />
-            </div>
-            <div class="input">
-                <label>Observações</label>
-                <textarea id="editCandNotes" placeholder="Ex.: indicado pelo João, pedir pretensão salarial..."></textarea>
-            </div>
+    <div id="modalDisplayView">
+        <div class="row">
+            <strong>Contato:</strong> <span id="modalCandContactDisplay"></span>
         </div>
-
-        <div class="modal-footer">
-            <div id="modalViewButtons">
-                <button class="btn primary" onclick="enterEditMode()">Editar</button>
-                <button class="btn danger" id="modalDeleteBtn">Excluir</button>
-            </div>
-            <div id="modalEditButtons" style="display:none;">
-                <button class="btn" onclick="exitEditMode()">Cancelar</button>
-                <button class="btn primary" onclick="saveEditedCandidate()">Salvar</button>
-            </div>
+        <div class="row">
+            <strong>Currículo:</strong> <a id="modalCandCV" href="#" target="_blank" rel="noopener noreferrer">Ver currículo</a>
+        </div>
+        <div class="divider"></div>
+        <h4>Observações:</h4>
+        <p id="modalCandNotesDisplay"></p>
+        <div class="input" id="triagemDateInput">
+            <label>Data de Triagem:</label>
+            <input id="modalCandTriagemDateDisplay" type="date" disabled />
+        </div>
+    </div>
+    
+    <div id="modalEditView" style="display: none;">
+        <div class="input">
+            <label>Contato</label>
+            <input id="editCandContact" placeholder="E-mail, telefone ou @" />
+        </div>
+        <div class="input">
+            <label>Currículo (URL opcional)</label>
+            <input id="editCandCV" placeholder="https://..." />
+        </div>
+        <div class="input">
+            <label>Observações</label>
+            <textarea id="editCandNotes" placeholder="Ex.: indicado pelo João, pedir pretensão salarial..."></textarea>
+        </div>
+        <div class="input" id="editTriagemDateInput">
+            <label>Data de Triagem:</label>
+            <input id="editCandTriagemDate" type="date" />
+        </div>
+    </div>
+    
+    <div class="modal-footer">
+        <div id="modalViewButtons">
+            <button class="btn primary" onclick="enterEditMode()">Editar</button>
+            <button class="btn danger" id="modalDeleteBtn">Excluir</button>
+        </div>
+        <div id="modalEditButtons" style="display:none;">
+            <button class="btn" onclick="exitEditMode()">Cancelar</button>
+            <button class="btn primary" onclick="saveEditedCandidate()">Salvar</button>
         </div>
     </div>
 </div>
@@ -728,20 +731,6 @@ function exitEditMode() {
     document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
     document.getElementById('modalDeleteBtn').style.display = 'block';
 }
-        }
-
-        function exitEditMode() {
-            modalDisplayView.style.display = 'block';
-            modalEditView.style.display = 'none';
-            modalViewButtons.style.display = 'flex';
-            modalEditButtons.style.display = 'none';
-            modalCandNameDisplay.style.display = 'block';
-            modalCandNameEdit.style.display = 'none';
-
-            document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
-            document.getElementById('modalDeleteBtn').style.display = 'block';
-        }
-
         async function saveEditedCandidate() {
             const job = currentJob();
             if (!job || job.closeDate || !activeCandidate) return;
@@ -960,4 +949,5 @@ function exitEditMode() {
     </script>
 </body>
 </html>
+
 
