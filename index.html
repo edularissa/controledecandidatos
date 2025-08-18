@@ -927,40 +927,50 @@
             a.click();
             URL.revokeObjectURL(a.href);
         };
-        importFile.onchange = async (e) => { // Adicionar 'async' aqui
+importFile.onchange = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = async () => { // Adicionar 'async' aqui também
+    reader.onload = async () => {
         try {
             const data = JSON.parse(reader.result);
             if (!data || !Array.isArray(data.jobs)) {
                 throw new Error("Formato inválido. Esperado: { jobs: [] }");
             }
-            if (!confirm(`Isso irá adicionar ${data.jobs.length} vagas. As vagas existentes com o mesmo ID serão sobrescritas. Deseja continuar?`)) {
+
+            if (!confirm(`Isso irá adicionar ${data.jobs.length} vagas ao banco de dados. Vagas com o mesmo ID serão sobrescritas. Deseja continuar?`)) {
                 return;
             }
 
-            // Usar o método 'batch' do Firestore para escrever múltiplos documentos de uma vez.
-            // Isso é mais eficiente e seguro.
             const batch = db.batch();
             data.jobs.forEach(job => {
-                const docRef = db.collection("jobs").doc(job.id); // Pega o ID original
-                batch.set(docRef, job); // Seta os dados no documento com o ID original
+                // Certifica-se de que a vaga tem um ID para a importação
+                if (job.id) {
+                    const docRef = db.collection("jobs").doc(job.id);
+                    // Cria uma cópia dos dados para não modificar o objeto original
+                    const jobData = { ...job };
+                    // Remove o ID do objeto de dados, pois ele já é o ID do documento
+                    delete jobData.id;
+                    batch.set(docRef, jobData);
+                } else {
+                    // Caso a vaga não tenha ID (formato incorreto), cria um novo documento.
+                    const newDocRef = db.collection("jobs").doc();
+                    batch.set(newDocRef, job);
+                }
             });
-            
-            await batch.commit(); // Executa todas as operações em lote
+
+            await batch.commit();
             alert("Importação concluída com sucesso!");
 
         } catch (err) {
-            console.error(err);
-            alert("Falha ao importar. Verifique se o arquivo está no formato correto. Erro: " + err.message);
+            console.error("Falha na importação:", err);
+            alert("Falha ao importar. Verifique se o arquivo está no formato JSON correto. Erro: " + err.message);
         }
     };
     reader.readAsText(file);
     e.target.value = '';
-        };
+};
 
         /********************
          * Helpers
@@ -983,4 +993,5 @@
     </script>
 </body>
 </html>
+
 
