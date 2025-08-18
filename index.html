@@ -88,7 +88,7 @@
         .job-title{font-weight:700}
         .job-desc{color:var(--text-dim); font-size:13px; line-height:1.3}
         .empty{color:var(--text-dim); font-size:13px; text-align:center; padding:10px}
-
+        
         /* Estilos adicionais para os novos campos */
         .status-pill {
             padding: 2px 8px;
@@ -220,7 +220,7 @@
             padding-top: 10px;
             border-top: 1px solid var(--soft);
         }
-
+        
         .footer{opacity:.8; font-size:12px; text-align:center; padding-top:4px}
         @media (max-width: 920px){
             .app{grid-template-columns:1fr}
@@ -242,7 +242,692 @@
             </div>
         </header>
 
-@@ -972,4 +973,3 @@
+        <aside class="sidebar">
+            <h2>Vagas abertas</h2>
+            <div class="row">
+                <input id="jobTitle" placeholder="Título da vaga (ex.: Assistente de DHO)"/>
+            </div>
+            <div class="row">
+                <input id="jobDesc" placeholder="Descrição (resumo curto da vaga)"/>
+            </div>
+            <div class="row">
+                <div class="input grow">
+                    <label>Tipo da vaga</label>
+                    <select id="jobType">
+                        <option value="operacional">Operacional</option>
+                        <option value="tecnica">Técnica</option>
+                        <option value="estrategica">Estratégica</option>
+                    </select>
+                </div>
+                <div class="input grow">
+                    <label>Data de abertura</label>
+                    <input type="date" id="jobOpenDate"/>
+                </div>
+            </div>
+            <div class="row">
+                <input id="jobStages" placeholder="Etapas separadas por vírgula (ex.: Recebidos,Triagem,Entrevista,Oferta)"/>
+            </div>
+            <div class="row">
+                <button class="btn primary block" id="addJobBtn">Criar vaga</button>
+            </div>
+
+            <div class="divider"></div>
+            <div class="row">
+                <input id="jobSearch" placeholder="Buscar vaga por título..."/>
+            </div>
+            
+            <div class="jobs-list" id="openJobsList"></div>
+            
+            <div class="divider"></div>
+            <h2 style="margin-top:0">Vagas fechadas</h2>
+            <div class="jobs-list" id="closedJobsList"></div>
+            <div class="footer muted">Dica: você pode editar as etapas depois, dentro da vaga.</div>
+        </aside>
+
+        <main class="main">
+            <div id="emptyMain" class="empty">Selecione ou crie uma vaga para começar.</div>
+
+            <div id="jobView" style="display:none">
+                <div class="row">
+                    <div class="input grow">
+                        <label>Título da vaga</label>
+                        <input id="editJobTitle"/>
+                    </div>
+                    <div class="input grow">
+                        <label>Descrição</label>
+                        <input id="editJobDesc"/>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="input grow">
+                        <label>Tipo da vaga</label>
+                        <select id="editJobType">
+                            <option value="operacional">Operacional</option>
+                            <option value="tecnica">Técnica</option>
+                            <option value="estrategica">Estratégica</option>
+                        </select>
+                    </div>
+                    <div class="input grow">
+                        <label>Data de abertura</label>
+                        <input type="date" id="editJobOpenDate"/>
+                    </div>
+                    <div class="input grow">
+                        <label>Data de fechamento</label>
+                        <input type="date" id="editJobCloseDate"/>
+                    </div>
+                </div>
+
+                <div class="row" style="justify-content:space-between">
+                    <div class="input grow">
+                        <label>Etapas do processo (pressione Enter para adicionar)</label>
+                        <div class="row">
+                            <input id="stageInput" placeholder="Nova etapa..." />
+                            <button class="btn" id="addStageBtn">Adicionar etapa</button>
+                        </div>
+                        <div id="stagesChips" class="chips"></div>
+                        <div class="muted" style="font-size:12px">Arraste candidatos entre etapas no Kanban.</div>
+                    </div>
+                    <button class="btn primary block" id="closeJobBtn">Fechar Vaga</button>
+                </div>
+                <div class="divider"></div>
+
+                <div class="row">
+                    <div class="input grow">
+                        <label>Adicionar candidato</label>
+                        <input id="candName" placeholder="Nome completo"/>
+                    </div>
+                    <div class="input grow">
+                        <label>Contato</label>
+                        <input id="candContact" placeholder="E-mail, telefone ou @"/>
+                    </div>
+                    <div class="input grow">
+                        <label>Currículo (URL opcional)</label>
+                        <input id="candCV" placeholder="https://..." />
+                    </div>
+                    <button class="btn primary" id="addCandBtn" title="Adiciona na primeira etapa">+ Candidato</button>
+                </div>
+                <div class="row">
+                    <div class="input grow">
+                        <label>Observações (serão salvas no cartão do candidato ao criar)</label>
+                        <textarea id="candNotes" placeholder="Ex.: indicado pelo João, pedir pretensão salarial..."></textarea>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <input id="searchCand" class="grow" placeholder="Buscar candidato por nome/contato/notas..."/>
+                    <button class="btn ghost" id="deleteJobBtn" title="Excluir vaga atual">Excluir vaga</button>
+                </div>
+
+                <section id="kanban" class="kanban"></section>
+            </div>
+        </main>
+    </div>
+
+    <div id="candidateModal" class="modal-backdrop" style="display: none;">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalCandNameDisplay"></h3>
+                <div id="modalCandNameEdit" style="display:none;">
+                    <label>Nome:</label>
+                    <input id="editCandName" type="text" />
+                </div>
+                <button class="btn small" onclick="closeModal()">✕</button>
+            </div>
+
+            <div id="modalDisplayView">
+                <div class="row">
+                    <strong>Contato:</strong> <span id="modalCandContactDisplay"></span>
+                </div>
+                <div class="row">
+                    <strong>Currículo:</strong> <a id="modalCandCV" href="#" target="_blank" rel="noopener noreferrer">Ver currículo</a>
+                </div>
+                <div class="divider"></div>
+                <h4>Observações:</h4>
+                <p id="modalCandNotesDisplay"></p>
+                <div class="input" id="triagemDateInput">
+                    <label>Data de Triagem:</label>
+                    <input id="editCandTriagemDate" type="date" disabled />
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <div id="modalViewButtons">
+                    <button class="btn primary" onclick="enterEditMode()">Editar</button>
+                    <button class="btn danger" id="modalDeleteBtn">Excluir</button>
+                </div>
+                <div id="modalEditButtons" style="display:none;">
+                    <button class="btn" onclick="exitEditMode()">Cancelar</button>
+                    <button class="btn primary" onclick="saveEditedCandidate()">Salvar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        /***********************
+         * Mini ATS — lógica com Firebase
+         ***********************/
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDFJSkoKJPRsCBmxHR-ye4W7JEj6KtOEtI",
+            authDomain: "gestao-de-candidatos-9210c.firebaseapp.com",
+            projectId: "gestao-de-candidatos-9210c",
+            storageBucket: "gestao-de-candidatos-9210c.firebasestorage.app",
+            messagingSenderId: "832627853482",
+            appId: "1:832627853482:web:4ca4ae8bc0023416cb68d3"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        let state = { jobs: [], selectedJobId: null };
+        const PRAZOS = {
+            'operacional': 20,
+            'tecnica': 30,
+            'estrategica': 45
+        };
+
+        function getJobStatus(job) {
+            const open = new Date(job.openDate);
+            const close = job.closeDate ? new Date(job.closeDate) : new Date();
+            const diffTime = Math.abs(close - open);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const prazoLimite = PRAZOS[job.type];
+            if (diffDays <= prazoLimite) {
+                return { text: "No Prazo", class: "no-prazo" };
+            } else {
+                return { text: "Fora do Prazo", class: "fora-do-prazo" };
+            }
+        }
+        function uid(){
+            return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
+        }
+        
+        /** @typedef {{id:string, title:string, description:string, stages:string[], candidates: Candidate[]}} Job */
+        /** @typedef {{id:string, name:string, contact:string, cv?:string, notes?:string, stage:string, createdAt:number}} Candidate */
+
+        function cand(name, contact, cv, stage, notes){
+            return { id: uid(), name, contact, cv, notes, stage, createdAt: Date.now() };
+        }
+
+        function render(){
+            renderJobsList();
+            renderMain();
+        }
+
+        function renderJobsList(){
+            const filter = (jobSearch.value||"").toLowerCase().trim();
+            const openList = state.jobs.filter(j => !j.closeDate).filter(j => j.title.toLowerCase().includes(filter));
+            const closedList = state.jobs.filter(j => j.closeDate).filter(j => j.title.toLowerCase().includes(filter));
+
+            renderJobSection(openJobsList, openList);
+            renderJobSection(closedJobsList, closedList);
+        }
+        
+        function renderJobSection(container, list) {
+            container.innerHTML = '';
+            if (!list.length){
+                const div = document.createElement('div');
+                div.className = 'empty';
+                div.textContent = 'Nenhuma vaga encontrada.';
+                container.appendChild(div);
+                return;
+            }
+            list.forEach(job => {
+                const status = getJobStatus(job);
+                const card = document.createElement('div');
+                card.className = 'job-card' + (state.selectedJobId===job.id?' active':'');
+                card.innerHTML = `
+                    <div class="row" style="justify-content:space-between">
+                        <div class="job-title nowrap">${escapeHTML(job.title)}</div>
+                        <div class="badge">${job.candidates.length}</div>
+                    </div>
+                    <div class="row" style="justify-content:space-between; align-items:flex-end">
+                         <div class="job-desc nowrap">
+                             <strong>Tipo:</strong> ${job.type}
+                         </div>
+                         <div style="display:flex; gap: 4px; flex-wrap: wrap;">
+                            <div class="status-pill ${job.closeDate ? 'fechada' : status.class}">${job.closeDate ? 'Fechada' : 'Aberto'}</div>
+                            ${job.closeDate ? `<div class="status-pill ${status.class}">${status.text}</div>` : ''}
+                         </div>
+                    </div>
+                    <div class="job-desc nowrap">${escapeHTML(job.description||'Sem descrição')}</div>
+                `;
+                card.onclick = () => { state.selectedJobId = job.id; render(); };
+                container.appendChild(card);
+            });
+        }
+        function renderMain(){
+            const job = currentJob();
+            if (!job){
+                emptyMain.style.display = '';
+                jobView.style.display = 'none';
+                return;
+            }
+            emptyMain.style.display = 'none';
+            jobView.style.display = '';
+
+            const isClosed = !!job.closeDate;
+            
+            // ALTERAÇÃO: ATRIBUIÇÃO DOS NOVOS CAMPOS PARA EDIÇÃO
+            editJobTitle.value = job.title;
+            editJobDesc.value = job.description||'';
+            editJobType.value = job.type;
+            editJobOpenDate.value = job.openDate;
+            editJobCloseDate.value = job.closeDate || '';
+            
+            // ALTERAÇÃO: DESABILITAÇÃO DOS CAMPOS E BOTÕES DE VAGA FECHADA
+            editJobTitle.disabled = isClosed;
+            editJobDesc.disabled = isClosed;
+            editJobType.disabled = isClosed;
+            editJobOpenDate.disabled = isClosed;
+            editJobCloseDate.disabled = isClosed;
+            stageInput.disabled = isClosed;
+            addStageBtn.disabled = isClosed;
+            addCandBtn.disabled = isClosed;
+            candName.disabled = isClosed;
+            candContact.disabled = isClosed;
+            candCV.disabled = isClosed;
+            candNotes.disabled = isClosed;
+            
+            closeJobBtn.style.display = isClosed ? 'none' : 'block';
+            deleteJobBtn.style.display = 'block';
+            // FIM DA ALTERAÇÃO
+
+            renderStagesChips(job, !isClosed);
+            renderKanban(job);
+        }
+
+        function renderStagesChips(job, allowEdit){
+            stagesChips.innerHTML = '';
+            job.stages.forEach((stg, idx) => {
+                const chip = document.createElement('span');
+                chip.className = 'chip';
+                chip.innerHTML = `<span>${escapeHTML(stg)}</span>${allowEdit ? `<span class="x" title="Remover">✕</span>` : ''}`;
+                
+                if (allowEdit) {
+                    chip.querySelector('.x').onclick = async () => {
+                        const fallback = job.stages[idx-1] || job.stages[0];
+                        const newCandidates = job.candidates.map(c => c.stage===stg ? {...c, stage:fallback} : c);
+                        const newStages = job.stages.filter((_, i) => i !== idx);
+                        await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
+                    };
+                    chip.ondblclick = async () => {
+                        const novo = prompt('Renomear etapa:', stg);
+                        if (!novo) return;
+                        const prev = stg;
+                        const newStages = job.stages.map(s => s === prev ? novo : s);
+                        const newCandidates = job.candidates.map(c => c.stage===prev ? {...c, stage:novo} : c);
+                        await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
+                    };
+                }
+                stagesChips.appendChild(chip);
+            });
+        }
+
+        function renderKanban(job){
+            const q = (searchCand.value||'').toLowerCase().trim();
+            kanban.innerHTML = '';
+            const allowDrag = !job.closeDate;
+            job.stages.forEach(stage => {
+                const col = document.createElement('div');
+                col.className = 'col';
+                col.dataset.stage = stage;
+
+                const header = document.createElement('div');
+                header.className = 'col-header';
+                header.innerHTML = `
+                    <div class="row" style="gap:8px">
+                        <strong>${escapeHTML(stage)}</strong>
+                    </div>
+                    <span class="badge" id="count-${cssId(stage)}">0</span>
+                `;
+                col.appendChild(header);
+
+                const dropzone = document.createElement('div');
+                dropzone.className = 'dropzone';
+                if (allowDrag) {
+                    dropzone.ondragover = (e)=>{ e.preventDefault(); dropzone.classList.add('hover'); };
+                    dropzone.ondragleave = ()=> dropzone.classList.remove('hover');
+                    dropzone.ondrop = (e)=>{
+                        e.preventDefault();
+                        dropzone.classList.remove('hover');
+                        const candId = e.dataTransfer.getData('text/plain');
+                        moveCandidate(job.id, candId, stage);
+                    };
+                }
+                col.appendChild(dropzone);
+
+                const list = job.candidates
+                    .filter(c => c.stage===stage)
+                    .filter(c => !q || (c.name+c.contact+(c.notes||'')).toLowerCase().includes(q))
+                    .sort((a,b)=>a.createdAt-b.createdAt);
+
+                list.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'card' + (allowDrag ? '' : ' is-closed');
+                    card.draggable = allowDrag;
+                    card.ondragstart = (e)=>{ 
+                        if(allowDrag) {
+                            e.dataTransfer.setData('text/plain', c.id); 
+                        }
+                    };
+                    
+                    card.onclick = () => showCandidateModal(c);
+
+                    card.innerHTML = `
+                        <div class="title nowrap">${escapeHTML(c.name)}</div>
+                        <div class="meta nowrap">${escapeHTML(c.contact||'')}</div>
+                        ${c.notes ? `<div class="notes nowrap">${escapeHTML(c.notes)}</div>` : ''}
+                    `;
+                    dropzone.appendChild(card);
+                });
+
+                kanban.appendChild(col);
+                const count = list.length;
+                header.querySelector(`#count-${cssId(stage)}`).textContent = count;
+            });
+        }
+
+        /********************
+         * Funções do Modal
+         ********************/
+        let activeCandidate = null;
+
+        function showCandidateModal(candidate) {
+            activeCandidate = candidate;
+            const job = currentJob();
+            if (!job) return;
+
+            const isClosed = !!job.closeDate;
+            const isTriagemStage = candidate.stage === 'Triagem';
+
+            modalCandNameDisplay.textContent = candidate.name;
+            modalCandContactDisplay.textContent = candidate.contact || 'Não informado';
+            modalCandNotesDisplay.textContent = candidate.notes || 'Sem observações.';
+            modalCandCV.href = candidate.cv || '#';
+            modalCandCV.style.display = candidate.cv ? 'block' : 'none';
+            
+            editCandName.value = candidate.name;
+            editCandContact.value = candidate.contact || '';
+            editCandCV.value = candidate.cv || '';
+            editCandNotes.value = candidate.notes || '';
+            editCandTriagemDate.value = candidate.triagemDate || '';
+
+            triagemDateInput.style.display = isTriagemStage ? 'flex' : 'none';
+            editCandTriagemDate.disabled = isClosed;
+
+            if (isClosed) {
+                modalCandNameDisplay.textContent = 'Visualizar Candidato';
+                modalEditView.style.display = 'none';
+                modalViewButtons.style.display = 'flex';
+                document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'none';
+                modalEditButtons.style.display = 'none';
+                document.getElementById('modalDeleteBtn').style.display = 'none';
+            } else {
+                modalCandNameDisplay.textContent = 'Detalhes do Candidato';
+                modalEditView.style.display = 'none';
+                modalViewButtons.style.display = 'flex';
+                document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
+                modalEditButtons.style.display = 'none';
+                document.getElementById('modalDeleteBtn').style.display = 'block';
+            }
+
+            document.getElementById('candidateModal').style.display = 'flex';
+            document.getElementById('modalDeleteBtn').onclick = () => {
+                closeModal();
+                deleteCandidate(job.id, candidate.id);
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('candidateModal').style.display = 'none';
+            activeCandidate = null;
+            activeJob = null;
+        }
+
+        function enterEditMode() {
+            const job = currentJob();
+            if (!job || job.closeDate) return;
+
+            modalDisplayView.style.display = 'none';
+            modalEditView.style.display = 'block';
+            modalViewButtons.style.display = 'none';
+            modalEditButtons.style.display = 'flex';
+            modalCandNameDisplay.style.display = 'none';
+            modalCandNameEdit.style.display = 'block';
+
+            triagemDateInput.style.display = (activeCandidate && activeCandidate.stage === 'Triagem') ? 'flex' : 'none';
+            editCandTriagemDate.disabled = false;
+        }
+
+        function exitEditMode() {
+            modalDisplayView.style.display = 'block';
+            modalEditView.style.display = 'none';
+            modalViewButtons.style.display = 'flex';
+            modalEditButtons.style.display = 'none';
+            modalCandNameDisplay.style.display = 'block';
+            modalCandNameEdit.style.display = 'none';
+
+            document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
+            document.getElementById('modalDeleteBtn').style.display = 'block';
+        }
+
+        async function saveEditedCandidate() {
+            const job = currentJob();
+            if (!job || job.closeDate || !activeCandidate) return;
+
+            const newName = editCandName.value.trim();
+            const newContact = editCandContact.value.trim();
+            const newCv = editCandCV.value.trim();
+            const newNotes = editCandNotes.value.trim();
+            const newTriagemDate = editCandTriagemDate.value;
+
+            if (!newName) {
+                alert('O nome do candidato não pode ser vazio.');
+                return;
+            }
+            
+            const updatedCandidates = job.candidates.map(candidate => 
+                candidate.id === activeCandidate.id 
+                    ? { 
+                        ...candidate, 
+                        name: newName, 
+                        contact: newContact, 
+                        cv: newCv, 
+                        notes: newNotes,
+                        triagemDate: candidate.stage === 'Triagem' ? newTriagemDate : candidate.triagemDate 
+                      }
+                    : candidate
+            );
+
+            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+            closeModal();
+        }
+
+        /******************
+         * Ações (Vagas)
+         ******************/
+        addJobBtn.onclick = async () => {
+            const title = jobTitle.value.trim();
+            if(!title){ alert('Informe um título para a vaga.'); return; }
+            const description = jobDesc.value.trim();
+            const type = jobType.value;
+            const openDate = jobOpenDate.value || new Date().toISOString().split('T')[0];
+            const stages = (jobStages.value || "Recebidos,Triagem,Entrevista,Contratados")
+                .split(",")
+                .map(s => s.trim())
+                .filter(Boolean);
+            const newJob = { title, description, type, openDate, closeDate: null, stages, candidates: [] };
+            await db.collection("jobs").add(newJob);
+            jobTitle.value = jobDesc.value = jobStages.value = '';
+            jobType.value = 'operacional';
+            jobOpenDate.value = '';
+        };
+
+        editJobTitle.oninput = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            await db.collection("jobs").doc(job.id).update({ title: editJobTitle.value });
+        };
+        editJobDesc.oninput = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            await db.collection("jobs").doc(job.id).update({ description: editJobDesc.value });
+        };
+        editJobType.onchange = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            await db.collection("jobs").doc(job.id).update({ type: editJobType.value });
+        };
+        editJobOpenDate.onchange = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            await db.collection("jobs").doc(job.id).update({ openDate: editJobOpenDate.value });
+
+        };
+
+        closeJobBtn.onclick = async () => {
+            const job = currentJob();
+            if (!job) return;
+            if (confirm(`Tem certeza que deseja fechar a vaga "${job.title}"?`)) {
+                const newCloseDate = new Date().toISOString().split('T')[0];
+                const updatedStages = ["Fechada"];
+                const updatedCandidates = job.candidates.map(c => ({ ...c, stage: "Fechada" }));
+                await db.collection("jobs").doc(job.id).update({ 
+                    closeDate: newCloseDate,
+                    stages: updatedStages,
+                    candidates: updatedCandidates
+                });
+                state.selectedJobId = null;
+            }
+        };
+
+        addStageBtn.onclick = addStageFromInput;
+        stageInput.addEventListener('keydown', (e)=>{
+            if(e.key==='Enter'){ e.preventDefault(); addStageFromInput(); }
+        });
+        async function addStageFromInput(){
+            const job = currentJob(); if(!job || job.closeDate) return;
+            const val = stageInput.value.trim();
+            if(!val) return;
+            if(job.stages.includes(val)){ alert('Etapa já existe.'); return; }
+            const newStages = [...job.stages, val];
+            await db.collection("jobs").doc(job.id).update({ stages: newStages });
+            stageInput.value = '';
+        }
+
+        deleteJobBtn.onclick = async () => {
+            const job = currentJob(); if(!job) return;
+            if(!confirm(`Excluir a vaga "${job.title}"?`)) return;
+            await db.collection("jobs").doc(job.id).delete();
+            state.selectedJobId = null;
+        };
+
+        jobSearch.oninput = renderJobsList;
+
+        /*************************
+         * Ações (Candidatos)
+         *************************/
+        addCandBtn.onclick = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            const name = (candName.value||'').trim();
+            if(!name){ alert('Informe o nome do candidato.'); return; }
+            const contact = (candContact.value||'').trim();
+            const cv = (candCV.value||'').trim();
+            const notes = (candNotes.value||'').trim();
+            const firstStage = job.stages[0] || "Recebidos";
+            const newCandidate = cand(name, contact, cv, firstStage, notes);
+            const updatedCandidates = [...job.candidates, newCandidate];
+            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+            candName.value = candContact.value = candCV.value = candNotes.value = '';
+        };
+
+        searchCand.oninput = ()=>{ const job = currentJob(); if(job) renderKanban(job); };
+
+        async function moveCandidate(jobId, candId, stage){
+            const job = state.jobs.find(j=>j.id===jobId);
+            if(!job || job.closeDate) return;
+
+            const updatedCandidates = job.candidates.map(c => {
+                if (c.id === candId) {
+                    const newCandidate = { ...c, stage };
+                    if (stage === 'Triagem' && !c.triagemDate) {
+                        newCandidate.triagemDate = new Date().toISOString().split('T')[0];
+                    }
+                    return newCandidate;
+                }
+                return c;
+            });
+            await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
+        }
+
+        async function deleteCandidate(jobId, candId){
+            const job = state.jobs.find(j=>j.id===jobId);
+            if(!job) return;
+            if(job.closeDate) {
+                alert('Não é possível excluir candidatos de uma vaga fechada.');
+                return;
+            }
+            const candObj = job.candidates.find(x=>x.id===candId);
+            if(!candObj) return;
+            if(!confirm(`Excluir o candidato "${candObj.name}"?`)) return;
+            const updatedCandidates = job.candidates.filter(x=>x.id!==candId);
+            await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
+        }
+
+        /********************
+         * Export/Import
+         ********************/
+        exportBtn.onclick = async ()=>{
+            const allJobs = await db.collection("jobs").get();
+            const data = { jobs: allJobs.docs.map(doc => ({ id: doc.id, ...doc.data() })) };
+            const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = `mini-ats-backup-${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        };
+        importFile.onchange = (e)=>{
+            const file = e.target.files?.[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ()=>{
+                try{
+                    const data = JSON.parse(reader.result);
+                    if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
+                    data.jobs.forEach(job => db.collection("jobs").add(job));
+                }catch(err){
+                    alert("Falha ao importar: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        };
+        resetBtn.onclick = async ()=>{
+            if(!confirm("Isto apagará todas as vagas e candidatos salvos no banco de dados. Continuar?")) return;
+            const jobsRef = db.collection("jobs");
+            const jobsSnapshot = await jobsRef.get();
+            const batch = db.batch();
+            jobsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
+        };
+
+        /********************
+         * Helpers
+         ********************/
+        function currentJob(){
+            return state.jobs.find(j=>j.id===state.selectedJobId) || null;
+        }
+        function escapeHTML(str){ return (str??'').toString().replace(/[&<>"']/g, s=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s])); }
+        function escapeAttr(str){ return escapeHTML(str).replace(/"/g,'&quot;'); }
+        function cssId(s){ return s.toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9_-]/g,''); }
+
+        // A aplicação é inicializada buscando os dados do Firebase em tempo real
+        db.collection("jobs").onSnapshot((snapshot) => {
+            state.jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            render();
+        }, (error) => {
+            console.error("Erro ao buscar dados do Firestore:", error);
+            alert("Não foi possível conectar ao banco de dados. Verifique a sua conexão e as credenciais do Firebase.");
+        });
     </script>
 </body>
 </html>
