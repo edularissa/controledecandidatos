@@ -720,21 +720,27 @@
             a.click();
             URL.revokeObjectURL(a.href);
         };
-        importFile.onchange = (e)=>{
-            const file = e.target.files?.[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = ()=>{
-                try{
-                    const data = JSON.parse(reader.result);
-                    if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
-                    data.jobs.forEach(job => db.collection("jobs").add(job));
-                }catch(err){
-                    alert("Falha ao importar: " + err.message);
-                }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
+importFile.onchange = (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = async ()=>{
+        try{
+            const data = JSON.parse(reader.result);
+            if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
+
+            for (const job of data.jobs) {
+                const { id, ...jobData } = job; 
+                await db.collection("jobs").add(jobData);
+            }
+
+            alert("Importação concluída com sucesso!");
+        }catch(err){
+            alert("Falha ao importar: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
         };
         resetBtn.onclick = async ()=>{
             if(!confirm("Isto apagará todas as vagas e candidatos salvos no banco de dados. Continuar?")) return;
@@ -761,5 +767,6 @@
     </script>
 </body>
 </html>
+
 
 
