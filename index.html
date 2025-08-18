@@ -730,8 +730,13 @@ importFile.onchange = (e)=>{
             if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
 
             for (const job of data.jobs) {
-                const { id, ...jobData } = job; 
-                await db.collection("jobs").add(jobData);
+                // se tiver ID, usa ele no Firestore
+                if (job.id) {
+                    await db.collection("jobs").doc(job.id).set(job);
+                } else {
+                    // se não tiver ID, cria um novo automático
+                    await db.collection("jobs").add(job);
+                }
             }
 
             alert("Importação concluída com sucesso!");
@@ -767,6 +772,7 @@ importFile.onchange = (e)=>{
     </script>
 </body>
 </html>
+
 
 
 
