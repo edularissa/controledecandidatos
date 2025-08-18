@@ -10,17 +10,17 @@
 
     <style>
         :root{
-            --bg:#0f172a;               /* slate-900 */
-            --panel:#111827;            /* gray-900 */
-            --muted:#1f2937;            /* gray-800 */
-            --soft:#374151;             /* gray-700 */
-            --accent:#22c55e;           /* green-500 */
-            --accent-2:#06b6d4;         /* cyan-500 */
-            --text:#e5e7eb;             /* gray-200 */
-            --text-dim:#9ca3af;         /* gray-400 */
-            --danger:#ef4444;           /* red-500 */
-            --warn:#f59e0b;             /* amber-500 */
-            --ok:#10b981;               /* emerald-500 */
+            --bg:#0f172a;           /* slate-900 */
+            --panel:#111827;        /* gray-900 */
+            --muted:#1f2937;        /* gray-800 */
+            --soft:#374151;         /* gray-700 */
+            --accent:#22c55e;       /* green-500 */
+            --accent-2:#06b6d4;     /* cyan-500 */
+            --text:#e5e7eb;         /* gray-200 */
+            --text-dim:#9ca3af;     /* gray-400 */
+            --danger:#ef4444;       /* red-500 */
+            --warn:#f59e0b;         /* amber-500 */
+            --ok:#10b981;           /* emerald-500 */
             --radius:12px;
             --radius-sm:10px;
             --shadow:0 12px 30px rgba(0,0,0,.25);
@@ -59,12 +59,21 @@
         .btn.small{padding:8px 10px; font-size:12px}
         .btn.block{width:100%}
 
+        /* Estilos para desabilitar elementos */
+        .btn:disabled, .btn:disabled:hover{
+            background:var(--soft); cursor:not-allowed;
+        }
+        input:disabled, textarea:disabled, select:disabled {
+            opacity: 0.8;
+            cursor: not-allowed;
+        }
+
         /* Coluna esquerda (Vagas) */
         .sidebar{
             background:rgba(17,24,39,.7); border:1px solid rgba(255,255,255,.06);
             padding:14px; border-radius:var(--radius); display:flex; flex-direction:column; gap:12px;
             box-shadow:var(--shadow);
-            min-height:0; /* para overflow funcionar */
+            min-height:0;
         }
         .sidebar h2{margin:0 0 6px 0; font-size:16px; color:var(--text-dim); font-weight:600}
         .jobs-list{
@@ -79,6 +88,32 @@
         .job-title{font-weight:700}
         .job-desc{color:var(--text-dim); font-size:13px; line-height:1.3}
         .empty{color:var(--text-dim); font-size:13px; text-align:center; padding:10px}
+        
+        /* Estilos adicionais para os novos campos */
+        .status-pill {
+            padding: 2px 8px;
+            border-radius: 100px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .status-pill.aberto {
+            background-color: var(--text-dim);
+            color: #111;
+        }
+        .status-pill.no-prazo {
+            background-color: var(--ok);
+            color: #111;
+        }
+        .status-pill.fora-do-prazo {
+            background-color: var(--warn);
+            color: #111;
+        }
+        .status-pill.fechada {
+            background-color: var(--soft);
+            color: #111;
+        }
 
         /* Área principal */
         .main{
@@ -89,9 +124,12 @@
         }
         .row{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
         .grow{flex:1}
-        input, textarea{
+        input, textarea, select {
             width:100%; background:#0b1220; color:var(--text);
             border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:10px 12px;
+        }
+        select option {
+            background-color: var(--soft);
         }
         textarea{min-height:80px; resize:vertical}
         .input{display:flex; flex-direction:column; gap:6px}
@@ -125,19 +163,16 @@
             padding:10px; border-radius:10px; display:grid; gap:6px; cursor:pointer;
         }
         .card:active{cursor:grabbing}
+        .card.is-closed {
+            cursor: default;
+        }
         .card .title{font-weight:700}
         .card .meta{font-size:12px; color:var(--text-dim)}
         .card .notes{font-size:12px; color:var(--text)}
         .card .row{justify-content:space-between}
         .nowrap{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 
-        .footer{opacity:.8; font-size:12px; text-align:center; padding-top:4px}
-        @media (max-width: 920px){
-            .app{grid-template-columns:1fr}
-            header{position:sticky; top:0; z-index:5}
-        }
-
-        /* Estilos para o Modal */
+        /* Modal Styles */
         .modal-backdrop {
             position: fixed;
             top: 0;
@@ -151,7 +186,6 @@
             align-items: center;
             z-index: 1000;
         }
-
         .modal {
             background: var(--panel);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -164,7 +198,6 @@
             flex-direction: column;
             gap: 16px;
         }
-
         .modal-header {
             display: flex;
             justify-content: space-between;
@@ -173,22 +206,25 @@
             padding-bottom: 10px;
             margin-bottom: 10px;
         }
-
         .modal-header h3 {
             margin: 0;
             font-size: 1.5em;
         }
-
         .modal-body .row {
             margin-bottom: 8px;
         }
-
         .modal-footer {
             display: flex;
             justify-content: flex-end;
             gap: 10px;
             padding-top: 10px;
             border-top: 1px solid var(--soft);
+        }
+        
+        .footer{opacity:.8; font-size:12px; text-align:center; padding-top:4px}
+        @media (max-width: 920px){
+            .app{grid-template-columns:1fr}
+            header{position:sticky; top:0; z-index:5}
         }
     </style>
 </head>
@@ -207,12 +243,26 @@
         </header>
 
         <aside class="sidebar">
-            <h2>Vagas</h2>
+            <h2>Vagas abertas</h2>
             <div class="row">
                 <input id="jobTitle" placeholder="Título da vaga (ex.: Assistente de DHO)"/>
             </div>
             <div class="row">
                 <input id="jobDesc" placeholder="Descrição (resumo curto da vaga)"/>
+            </div>
+            <div class="row">
+                <div class="input grow">
+                    <label>Tipo da vaga</label>
+                    <select id="jobType">
+                        <option value="operacional">Operacional</option>
+                        <option value="tecnica">Técnica</option>
+                        <option value="estrategica">Estratégica</option>
+                    </select>
+                </div>
+                <div class="input grow">
+                    <label>Data de abertura</label>
+                    <input type="date" id="jobOpenDate"/>
+                </div>
             </div>
             <div class="row">
                 <input id="jobStages" placeholder="Etapas separadas por vírgula (ex.: Recebidos,Triagem,Entrevista,Oferta)"/>
@@ -225,8 +275,12 @@
             <div class="row">
                 <input id="jobSearch" placeholder="Buscar vaga por título..."/>
             </div>
-
-            <div class="jobs-list" id="jobsList"></div>
+            
+            <div class="jobs-list" id="openJobsList"></div>
+            
+            <div class="divider"></div>
+            <h2 style="margin-top:0">Vagas fechadas</h2>
+            <div class="jobs-list" id="closedJobsList"></div>
             <div class="footer muted">Dica: você pode editar as etapas depois, dentro da vaga.</div>
         </aside>
 
@@ -247,6 +301,25 @@
 
                 <div class="row">
                     <div class="input grow">
+                        <label>Tipo da vaga</label>
+                        <select id="editJobType">
+                            <option value="operacional">Operacional</option>
+                            <option value="tecnica">Técnica</option>
+                            <option value="estrategica">Estratégica</option>
+                        </select>
+                    </div>
+                    <div class="input grow">
+                        <label>Data de abertura</label>
+                        <input type="date" id="editJobOpenDate"/>
+                    </div>
+                    <div class="input grow">
+                        <label>Data de fechamento</label>
+                        <input type="date" id="editJobCloseDate"/>
+                    </div>
+                </div>
+
+                <div class="row" style="justify-content:space-between">
+                    <div class="input grow">
                         <label>Etapas do processo (pressione Enter para adicionar)</label>
                         <div class="row">
                             <input id="stageInput" placeholder="Nova etapa..." />
@@ -255,8 +328,8 @@
                         <div id="stagesChips" class="chips"></div>
                         <div class="muted" style="font-size:12px">Arraste candidatos entre etapas no Kanban.</div>
                     </div>
+                    <button class="btn primary block" id="closeJobBtn">Fechar Vaga</button>
                 </div>
-
                 <div class="divider"></div>
 
                 <div class="row">
@@ -312,26 +385,35 @@
                 <div class="divider"></div>
                 <h4>Observações:</h4>
                 <p id="modalCandNotesDisplay"></p>
+                <div class="input" id="triagemDateInput">
+                    <label>Data de Triagem:</label>
+                    <input id="editCandTriagemDate" type="date" disabled />
+                </div>
             </div>
 
             <div id="modalEditView" style="display:none;">
-                <div class="input">
-                    <label>Contato:</label>
-                    <input id="editCandContact" type="text" />
+                <div class="input grow">
+                    <label>Nome do Candidato</label>
+                    <input id="editCandName" type="text" />
                 </div>
-                <div class="input">
-                    <label>Currículo (URL):</label>
-                    <input id="editCandCV" type="text" />
+                <div class="input grow">
+                    <label>Contato</label>
+                    <input id="editCandContact" placeholder="E-mail, telefone ou @" />
                 </div>
-                <div class="input">
-                    <label>Observações:</label>
-                    <textarea id="editCandNotes"></textarea>
+                <div class="input grow">
+                    <label>Currículo (URL)</label>
+                    <input id="editCandCV" placeholder="https://..." />
                 </div>
-</div>
-    <div class="input">
-        <label>Data de Triagem:</label>
-        <input id="editCandTriagemDate" type="date" />
-</div>
+                <div class="input grow">
+                    <label>Observações</label>
+                    <textarea id="editCandNotes" placeholder="Ex.: indicado pelo João, pedir pretensão salarial..."></textarea>
+                </div>
+                <div class="input" id="editTriagemDateInput">
+                    <label>Data de Triagem:</label>
+                    <input id="editCandTriagemDate" type="date" />
+                </div>
+            </div>
+
 
             <div class="modal-footer">
                 <div id="modalViewButtons">
@@ -345,13 +427,11 @@
             </div>
         </div>
     </div>
-
     <script>
         /***********************
-        * Mini ATS — lógica com Firebase
-        ***********************/
+         * Mini ATS — lógica com Firebase
+         ***********************/
 
-        // SEU CÓDIGO DE CONFIGURAÇÃO DO FIREBASE
         const firebaseConfig = {
             apiKey: "AIzaSyDFJSkoKJPRsCBmxHR-ye4W7JEj6KtOEtI",
             authDomain: "gestao-de-candidatos-9210c.firebaseapp.com",
@@ -360,15 +440,29 @@
             messagingSenderId: "832627853482",
             appId: "1:832627853482:web:4ca4ae8bc0023416cb68d3"
         };
-
-        // Inicialização do Firebase e do Firestore
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // state agora será atualizado pelo Firebase
         let state = { jobs: [], selectedJobId: null };
+        const PRAZOS = {
+            'operacional': 20,
+            'tecnica': 30,
+            'estrategica': 45
+        };
 
-        // Funções de persistência local (save, load, seed) não são mais usadas
+        function getJobStatus(job) {
+            const open = new Date(job.openDate);
+            const close = job.closeDate ? new Date(job.closeDate) : new Date();
+            const diffTime = Math.abs(close - open);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            const prazoLimite = PRAZOS[job.type];
+            if (diffDays <= prazoLimite) {
+                return { text: "No Prazo", class: "no-prazo" };
+            } else {
+                return { text: "Fora do Prazo", class: "fora-do-prazo" };
+            }
+        }
         function uid(){
             return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
         }
@@ -387,16 +481,24 @@
 
         function renderJobsList(){
             const filter = (jobSearch.value||"").toLowerCase().trim();
-            const list = state.jobs.filter(j => j.title.toLowerCase().includes(filter));
-            jobsList.innerHTML = '';
+            const openList = state.jobs.filter(j => !j.closeDate).filter(j => j.title.toLowerCase().includes(filter));
+            const closedList = state.jobs.filter(j => j.closeDate).filter(j => j.title.toLowerCase().includes(filter));
+
+            renderJobSection(openJobsList, openList);
+            renderJobSection(closedJobsList, closedList);
+        }
+        
+        function renderJobSection(container, list) {
+            container.innerHTML = '';
             if (!list.length){
                 const div = document.createElement('div');
                 div.className = 'empty';
                 div.textContent = 'Nenhuma vaga encontrada.';
-                jobsList.appendChild(div);
+                container.appendChild(div);
                 return;
             }
             list.forEach(job => {
+                const status = getJobStatus(job);
                 const card = document.createElement('div');
                 card.className = 'job-card' + (state.selectedJobId===job.id?' active':'');
                 card.innerHTML = `
@@ -404,13 +506,21 @@
                         <div class="job-title nowrap">${escapeHTML(job.title)}</div>
                         <div class="badge">${job.candidates.length}</div>
                     </div>
+                    <div class="row" style="justify-content:space-between; align-items:flex-end">
+                            <div class="job-desc nowrap">
+                                <strong>Tipo:</strong> ${job.type}
+                            </div>
+                            <div style="display:flex; gap: 4px; flex-wrap: wrap;">
+                                <div class="status-pill ${job.closeDate ? 'fechada' : status.class}">${job.closeDate ? 'Fechada' : 'Aberto'}</div>
+                                ${job.closeDate ? `<div class="status-pill ${status.class}">${status.text}</div>` : ''}
+                            </div>
+                    </div>
                     <div class="job-desc nowrap">${escapeHTML(job.description||'Sem descrição')}</div>
                 `;
                 card.onclick = () => { state.selectedJobId = job.id; render(); };
-                jobsList.appendChild(card);
+                container.appendChild(card);
             });
         }
-
         function renderMain(){
             const job = currentJob();
             if (!job){
@@ -421,40 +531,68 @@
             emptyMain.style.display = 'none';
             jobView.style.display = '';
 
+            const isClosed = !!job.closeDate;
+            
+            // ALTERAÇÃO: ATRIBUIÇÃO DOS NOVOS CAMPOS PARA EDIÇÃO
             editJobTitle.value = job.title;
             editJobDesc.value = job.description||'';
-            renderStagesChips(job);
+            editJobType.value = job.type;
+            editJobOpenDate.value = job.openDate;
+            editJobCloseDate.value = job.closeDate || '';
+            
+            // ALTERAÇÃO: DESABILITAÇÃO DOS CAMPOS E BOTÕES DE VAGA FECHADA
+            editJobTitle.disabled = isClosed;
+            editJobDesc.disabled = isClosed;
+            editJobType.disabled = isClosed;
+            editJobOpenDate.disabled = isClosed;
+            editJobCloseDate.disabled = isClosed;
+            stageInput.disabled = isClosed;
+            addStageBtn.disabled = isClosed;
+            addCandBtn.disabled = isClosed;
+            candName.disabled = isClosed;
+            candContact.disabled = isClosed;
+            candCV.disabled = isClosed;
+            candNotes.disabled = isClosed;
+            
+            closeJobBtn.style.display = isClosed ? 'none' : 'block';
+            deleteJobBtn.style.display = 'block';
+            // FIM DA ALTERAÇÃO
+
+            renderStagesChips(job, !isClosed);
             renderKanban(job);
         }
 
-        function renderStagesChips(job){
+        function renderStagesChips(job, allowEdit){
             stagesChips.innerHTML = '';
             job.stages.forEach((stg, idx) => {
                 const chip = document.createElement('span');
                 chip.className = 'chip';
-                chip.innerHTML = `<span>${escapeHTML(stg)}</span><span class="x" title="Remover">✕</span>`;
-                chip.querySelector('.x').onclick = async () => {
-                    const fallback = job.stages[idx-1] || job.stages[0];
-                    const newCandidates = job.candidates.map(c => c.stage===stg ? {...c, stage:fallback} : c);
-                    const newStages = job.stages.filter((_, i) => i !== idx);
-                    await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
-                };
-                chip.ondblclick = async () => {
-                    const novo = prompt('Renomear etapa:', stg);
-                    if (!novo) return;
-                    const prev = stg;
-                    const newStages = job.stages.map(s => s === prev ? novo : s);
-                    const newCandidates = job.candidates.map(c => c.stage===prev ? {...c, stage:novo} : c);
-                    await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
-                };
+                chip.innerHTML = `<span>${escapeHTML(stg)}</span>${allowEdit ? `<span class="x" title="Remover">✕</span>` : ''}`;
+                
+                if (allowEdit) {
+                    chip.querySelector('.x').onclick = async () => {
+                        const fallback = job.stages[idx-1] || job.stages[0];
+                        const newCandidates = job.candidates.map(c => c.stage===stg ? {...c, stage:fallback} : c);
+                        const newStages = job.stages.filter((_, i) => i !== idx);
+                        await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
+                    };
+                    chip.ondblclick = async () => {
+                        const novo = prompt('Renomear etapa:', stg);
+                        if (!novo) return;
+                        const prev = stg;
+                        const newStages = job.stages.map(s => s === prev ? novo : s);
+                        const newCandidates = job.candidates.map(c => c.stage===prev ? {...c, stage:novo} : c);
+                        await db.collection("jobs").doc(job.id).update({ stages: newStages, candidates: newCandidates });
+                    };
+                }
                 stagesChips.appendChild(chip);
             });
         }
 
-        // FUNÇÃO renderKanban CORRIGIDA
         function renderKanban(job){
             const q = (searchCand.value||'').toLowerCase().trim();
             kanban.innerHTML = '';
+            const allowDrag = !job.closeDate;
             job.stages.forEach(stage => {
                 const col = document.createElement('div');
                 col.className = 'col';
@@ -472,14 +610,16 @@
 
                 const dropzone = document.createElement('div');
                 dropzone.className = 'dropzone';
-                dropzone.ondragover = (e)=>{ e.preventDefault(); dropzone.classList.add('hover'); };
-                dropzone.ondragleave = ()=> dropzone.classList.remove('hover');
-                dropzone.ondrop = (e)=>{
-                    e.preventDefault();
-                    dropzone.classList.remove('hover');
-                    const candId = e.dataTransfer.getData('text/plain');
-                    moveCandidate(job.id, candId, stage);
-                };
+                if (allowDrag) {
+                    dropzone.ondragover = (e)=>{ e.preventDefault(); dropzone.classList.add('hover'); };
+                    dropzone.ondragleave = ()=> dropzone.classList.remove('hover');
+                    dropzone.ondrop = (e)=>{
+                        e.preventDefault();
+                        dropzone.classList.remove('hover');
+                        const candId = e.dataTransfer.getData('text/plain');
+                        moveCandidate(job.id, candId, stage);
+                    };
+                }
                 col.appendChild(dropzone);
 
                 const list = job.candidates
@@ -489,14 +629,16 @@
 
                 list.forEach(c => {
                     const card = document.createElement('div');
-                    card.className = 'card';
-                    card.draggable = true;
-                    card.ondragstart = (e)=>{ e.dataTransfer.setData('text/plain', c.id); };
+                    card.className = 'card' + (allowDrag ? '' : ' is-closed');
+                    card.draggable = allowDrag;
+                    card.ondragstart = (e)=>{ 
+                        if(allowDrag) {
+                            e.dataTransfer.setData('text/plain', c.id); 
+                        }
+                    };
                     
-                    // AO CLICAR NO CARD, ABRE O MODAL
                     card.onclick = () => showCandidateModal(c);
 
-                    // O card agora não tem botões de edição, apenas exibe as informações
                     card.innerHTML = `
                         <div class="title nowrap">${escapeHTML(c.name)}</div>
                         <div class="meta nowrap">${escapeHTML(c.contact||'')}</div>
@@ -511,29 +653,192 @@
             });
         }
 
+        /********************
+         * Funções do Modal
+         ********************/
+        let activeCandidate = null;
+
+        function showCandidateModal(candidate) {
+            activeCandidate = candidate;
+            const job = currentJob();
+            if (!job) return;
+
+            const isClosed = !!job.closeDate;
+            const isTriagemStage = candidate.stage === 'Triagem';
+
+            // Configura os elementos de visualização
+            modalCandNameDisplay.textContent = candidate.name;
+            modalCandContactDisplay.textContent = candidate.contact || 'Não informado';
+            modalCandNotesDisplay.textContent = candidate.notes || 'Sem observações.';
+            modalCandCV.href = candidate.cv || '#';
+            modalCandCV.style.display = candidate.cv ? 'block' : 'none';
+            
+            // Oculta a visualização e mostra a edição por padrão, se a vaga estiver aberta
+            modalDisplayView.style.display = 'block';
+            modalEditView.style.display = 'none';
+            modalViewButtons.style.display = 'flex';
+            modalEditButtons.style.display = 'none';
+
+            // Preenche os campos de edição (sem exibir ainda)
+            document.getElementById('editCandName').value = candidate.name;
+            document.getElementById('editCandContact').value = candidate.contact || '';
+            document.getElementById('editCandCV').value = candidate.cv || '';
+            document.getElementById('editCandNotes').value = candidate.notes || '';
+            
+            // Lógica para o campo de data de triagem
+            const editTriagemDateInput = document.getElementById('editCandTriagemDate');
+            editTriagemDateInput.value = candidate.triagemDate || '';
+            
+            document.getElementById('triagemDateInput').style.display = isTriagemStage ? 'flex' : 'none';
+            document.getElementById('editTriagemDateInput').style.display = isTriagemStage ? 'flex' : 'none';
+
+            // Ajusta o modal para modo de visualização se a vaga estiver fechada
+            if (isClosed) {
+                modalCandNameDisplay.textContent = 'Visualizar Candidato';
+                document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'none'; // Oculta o botão "Editar"
+                document.getElementById('modalDeleteBtn').style.display = 'none'; // Oculta o botão "Excluir"
+            } else {
+                modalCandNameDisplay.textContent = 'Detalhes do Candidato';
+                document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
+                document.getElementById('modalDeleteBtn').style.display = 'block';
+            }
+
+            document.getElementById('candidateModal').style.display = 'flex';
+            document.getElementById('modalDeleteBtn').onclick = () => {
+                closeModal();
+                deleteCandidate(job.id, candidate.id);
+            };
+        }
+
+        function closeModal() {
+            document.getElementById('candidateModal').style.display = 'none';
+            activeCandidate = null;
+        }
+
+        function enterEditMode() {
+            const job = currentJob();
+            if (!job || job.closeDate) return;
+
+            modalDisplayView.style.display = 'none';
+            modalEditView.style.display = 'block';
+            modalViewButtons.style.display = 'none';
+            modalEditButtons.style.display = 'flex';
+            
+            // Oculta o display de nome e mostra o input de edição
+            modalCandNameDisplay.style.display = 'none';
+            modalCandNameEdit.style.display = 'block';
+
+            // Ajusta o input de data de triagem no modo de edição
+            const isTriagemStage = activeCandidate.stage === 'Triagem';
+            document.getElementById('editTriagemDateInput').style.display = isTriagemStage ? 'flex' : 'none';
+            document.getElementById('editCandTriagemDate').disabled = false;
+        }
+
+        function exitEditMode() {
+            modalDisplayView.style.display = 'block';
+            modalEditView.style.display = 'none';
+            modalViewButtons.style.display = 'flex';
+            modalEditButtons.style.display = 'none';
+            
+            // Restaura o display de nome
+            modalCandNameDisplay.style.display = 'block';
+            modalCandNameEdit.style.display = 'none';
+            
+            const job = currentJob();
+            const isClosed = !!job.closeDate;
+            if (isClosed) {
+                document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'none';
+                document.getElementById('modalDeleteBtn').style.display = 'none';
+            } else {
+                document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
+                document.getElementById('modalDeleteBtn').style.display = 'block';
+            }
+        }
+
+        async function saveEditedCandidate() {
+            const job = currentJob();
+            if (!job || job.closeDate || !activeCandidate) return;
+
+            const newName = document.getElementById('editCandName').value.trim();
+            const newContact = document.getElementById('editCandContact').value.trim();
+            const newCv = document.getElementById('editCandCV').value.trim();
+            const newNotes = document.getElementById('editCandNotes').value.trim();
+            const newTriagemDate = document.getElementById('editCandTriagemDate').value;
+
+            if (!newName) {
+                alert('O nome do candidato não pode ser vazio.');
+                return;
+            }
+            
+            const updatedCandidates = job.candidates.map(candidate => 
+                candidate.id === activeCandidate.id 
+                    ? { 
+                        ...candidate, 
+                        name: newName, 
+                        contact: newContact, 
+                        cv: newCv, 
+                        notes: newNotes,
+                        triagemDate: candidate.stage === 'Triagem' ? newTriagemDate : candidate.triagemDate 
+                      }
+                    : candidate
+            );
+
+            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+            closeModal();
+        }
+
         /******************
-        * Ações (Vagas)
-        ******************/
+         * Ações (Vagas)
+         ******************/
         addJobBtn.onclick = async () => {
             const title = jobTitle.value.trim();
             if(!title){ alert('Informe um título para a vaga.'); return; }
             const description = jobDesc.value.trim();
+            const type = jobType.value;
+            const openDate = jobOpenDate.value || new Date().toISOString().split('T')[0];
             const stages = (jobStages.value || "Recebidos,Triagem,Entrevista,Contratados")
                 .split(",")
                 .map(s => s.trim())
                 .filter(Boolean);
-            const newJob = { title, description, stages, candidates: [] };
+            const newJob = { title, description, type, openDate, closeDate: null, stages, candidates: [] };
             await db.collection("jobs").add(newJob);
             jobTitle.value = jobDesc.value = jobStages.value = '';
+            jobType.value = 'operacional';
+            jobOpenDate.value = '';
         };
 
         editJobTitle.oninput = async () => {
-            const job = currentJob(); if(!job) return;
+            const job = currentJob(); if(!job || job.closeDate) return;
             await db.collection("jobs").doc(job.id).update({ title: editJobTitle.value });
         };
         editJobDesc.oninput = async () => {
-            const job = currentJob(); if(!job) return;
+            const job = currentJob(); if(!job || job.closeDate) return;
             await db.collection("jobs").doc(job.id).update({ description: editJobDesc.value });
+        };
+        editJobType.onchange = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            await db.collection("jobs").doc(job.id).update({ type: editJobType.value });
+        };
+        editJobOpenDate.onchange = async () => {
+            const job = currentJob(); if(!job || job.closeDate) return;
+            await db.collection("jobs").doc(job.id).update({ openDate: editJobOpenDate.value });
+
+        };
+
+        closeJobBtn.onclick = async () => {
+            const job = currentJob();
+            if (!job) return;
+            if (confirm(`Tem certeza que deseja fechar a vaga "${job.title}"?`)) {
+                const newCloseDate = new Date().toISOString().split('T')[0];
+                const updatedStages = ["Fechada"];
+                const updatedCandidates = job.candidates.map(c => ({ ...c, stage: "Fechada" }));
+                await db.collection("jobs").doc(job.id).update({ 
+                    closeDate: newCloseDate,
+                    stages: updatedStages,
+                    candidates: updatedCandidates
+                });
+                state.selectedJobId = null;
+            }
         };
 
         addStageBtn.onclick = addStageFromInput;
@@ -541,7 +846,7 @@
             if(e.key==='Enter'){ e.preventDefault(); addStageFromInput(); }
         });
         async function addStageFromInput(){
-            const job = currentJob(); if(!job) return;
+            const job = currentJob(); if(!job || job.closeDate) return;
             const val = stageInput.value.trim();
             if(!val) return;
             if(job.stages.includes(val)){ alert('Etapa já existe.'); return; }
@@ -560,10 +865,10 @@
         jobSearch.oninput = renderJobsList;
 
         /*************************
-        * Ações (Candidatos)
-        *************************/
+         * Ações (Candidatos)
+         *************************/
         addCandBtn.onclick = async () => {
-            const job = currentJob(); if(!job) return;
+            const job = currentJob(); if(!job || job.closeDate) return;
             const name = (candName.value||'').trim();
             if(!name){ alert('Informe o nome do candidato.'); return; }
             const contact = (candContact.value||'').trim();
@@ -580,40 +885,28 @@
 
         async function moveCandidate(jobId, candId, stage){
             const job = state.jobs.find(j=>j.id===jobId);
-            if(!job) return;
-            const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, stage } : candidate);
-            await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
-        }
+            if(!job || job.closeDate) return;
 
-        // Esta função de edição por prompt agora está vazia, pois a edição ocorre no modal.
-        async function editCandidate(jobId, candId){
-            const job = state.jobs.find(j=>j.id===jobId);
-            const c = job?.candidates.find(x=>x.id===candId);
-            if(!c) return;
-            const name = prompt("Nome do candidato:", c.name);
-            if(!name) return;
-            const contact = prompt("Contato (email/telefone/@):", c.contact||'') ?? '';
-            const cv = prompt("URL do currículo (opcional):", c.cv||'') ?? '';
-            const notes = prompt("Observações:", c.notes||'') ?? '';
-            const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, name, contact, cv, notes } : candidate);
+            const updatedCandidates = job.candidates.map(c => {
+                if (c.id === candId) {
+                    const newCandidate = { ...c, stage };
+                    if (stage === 'Triagem' && !c.triagemDate) {
+                        newCandidate.triagemDate = new Date().toISOString().split('T')[0];
+                    }
+                    return newCandidate;
+                }
+                return c;
+            });
             await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
-        }
-
-        async function addNote(jobId, candId){
-            const job = state.jobs.find(j=>j.id===jobId);
-            const c = job?.candidates.find(x=>x.id===candId);
-            if(!c) return;
-            const extra = prompt("Adicionar observação:", "");
-            if(extra){
-                const newNotes = (c.notes? c.notes+"\n" : "") + "• " + extra;
-                const updatedCandidates = job.candidates.map(candidate => candidate.id === candId ? { ...candidate, notes: newNotes } : candidate);
-                await db.collection("jobs").doc(jobId).update({ candidates: updatedCandidates });
-            }
         }
 
         async function deleteCandidate(jobId, candId){
             const job = state.jobs.find(j=>j.id===jobId);
             if(!job) return;
+            if(job.closeDate) {
+                alert('Não é possível excluir candidatos de uma vaga fechada.');
+                return;
+            }
             const candObj = job.candidates.find(x=>x.id===candId);
             if(!candObj) return;
             if(!confirm(`Excluir o candidato "${candObj.name}"?`)) return;
@@ -622,101 +915,15 @@
         }
 
         /********************
-        * Funções do Modal
-        ********************/
-        let activeCandidate = null;
-
-        function showCandidateModal(candidate) {
-            activeCandidate = candidate;
-            const job = currentJob();
-            if (!job) return;
-
-            exitEditMode();
-
-            modalCandNameDisplay.textContent = candidate.name;
-            modalCandContactDisplay.textContent = candidate.contact || 'Não informado';
-            modalCandNotesDisplay.textContent = candidate.notes || 'Sem observações.';
-
-            const cvLink = document.getElementById('modalCandCV');
-            if (candidate.cv) {
-                cvLink.href = candidate.cv;
-                cvLink.style.display = 'block';
-            } else {
-                cvLink.style.display = 'none';
-            }
-
-            document.getElementById('modalDeleteBtn').onclick = () => {
-                closeModal();
-                deleteCandidate(job.id, candidate.id);
-            };
-
-            document.getElementById('candidateModal').style.display = 'flex';
-        }
-
-        function closeModal() {
-            document.getElementById('candidateModal').style.display = 'none';
-            activeCandidate = null;
-        }
-
-        function enterEditMode() {
-            document.getElementById('modalDisplayView').style.display = 'none';
-            document.getElementById('modalEditView').style.display = 'block';
-            document.getElementById('modalViewButtons').style.display = 'none';
-            document.getElementById('modalEditButtons').style.display = 'flex';
-
-            document.getElementById('modalCandNameDisplay').style.display = 'none';
-            document.getElementById('modalCandNameEdit').style.display = 'block';
-
-            document.getElementById('editCandName').value = activeCandidate.name;
-            document.getElementById('editCandContact').value = activeCandidate.contact || '';
-            document.getElementById('editCandCV').value = activeCandidate.cv || '';
-            document.getElementById('editCandNotes').value = activeCandidate.notes || '';
-        }
-
-        function exitEditMode() {
-            document.getElementById('modalDisplayView').style.display = 'block';
-            document.getElementById('modalEditView').style.display = 'none';
-            document.getElementById('modalViewButtons').style.display = 'flex';
-            document.getElementById('modalEditButtons').style.display = 'none';
-
-            document.getElementById('modalCandNameDisplay').style.display = 'block';
-            document.getElementById('modalCandNameEdit').style.display = 'none';
-        }
-
-        async function saveEditedCandidate() {
-            const job = currentJob();
-            if (!job || !activeCandidate) return;
-
-            const newName = document.getElementById('editCandName').value.trim();
-            const newContact = document.getElementById('editCandContact').value.trim();
-            const newCv = document.getElementById('editCandCV').value.trim();
-            const newNotes = document.getElementById('editCandNotes').value.trim();
-
-            if (!newName) {
-                alert('O nome do candidato não pode ser vazio.');
-                return;
-            }
-            
-            const updatedCandidates = job.candidates.map(candidate => 
-                candidate.id === activeCandidate.id 
-                    ? { ...candidate, name: newName, contact: newContact, cv: newCv, notes: newNotes } 
-                    : candidate
-            );
-
-            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
-
-            closeModal();
-        }
-
-
-        /********************
-        * Export/Import
-        ********************/
-        exportBtn.onclick = ()=>{
-            const blob = new Blob([JSON.stringify(state,null,2)], {type:'application/json'});
+         * Export/Import
+         ********************/
+        exportBtn.onclick = async ()=>{
+            const allJobs = await db.collection("jobs").get();
+            const data = { jobs: allJobs.docs.map(doc => ({ id: doc.id, ...doc.data() })) };
+            const blob = new Blob([JSON.stringify(data,null,2)], {type:'application/json'});
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
-            a.download = `mini-ats-${new Date().toISOString().slice(0,10)}.json`;
+            a.download = `mini-ats-backup-${new Date().toISOString().slice(0,10)}.json`;
             a.click();
             URL.revokeObjectURL(a.href);
         };
@@ -740,12 +947,14 @@
             if(!confirm("Isto apagará todas as vagas e candidatos salvos no banco de dados. Continuar?")) return;
             const jobsRef = db.collection("jobs");
             const jobsSnapshot = await jobsRef.get();
-            jobsSnapshot.docs.forEach(doc => doc.ref.delete());
+            const batch = db.batch();
+            jobsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
+            await batch.commit();
         };
 
         /********************
-        * Helpers
-        ********************/
+         * Helpers
+         ********************/
         function currentJob(){
             return state.jobs.find(j=>j.id===state.selectedJobId) || null;
         }
@@ -757,8 +966,10 @@
         db.collection("jobs").onSnapshot((snapshot) => {
             state.jobs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             render();
+        }, (error) => {
+            console.error("Erro ao buscar dados do Firestore:", error);
+            alert("Não foi possível conectar ao banco de dados. Verifique a sua conexão e as credenciais do Firebase.");
         });
     </script>
 </body>
 </html>
-
