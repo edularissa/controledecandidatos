@@ -731,38 +731,43 @@ function exitEditMode() {
     document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
     document.getElementById('modalDeleteBtn').style.display = 'block';
 }
-       async function saveEditedCandidate() {
-            const job = currentJob();
-            if (!job || job.closeDate || !activeCandidate) return;
+      async function saveEditedCandidate() {
+    const job = currentJob();
+    if (!job || job.closeDate || !activeCandidate) return;
 
-            const newName = document.getElementById('editCandName').value.trim();
-            const newContact = document.getElementById('editCandContact').value.trim();
-            const newCv = document.getElementById('editCandCV').value.trim();
-            const newNotes = document.getElementById('editCandNotes').value.trim();
-            const newTriagemDate = document.getElementById('editCandTriagemDate').value;
+    // Obtém os valores dos campos de edição
+    const newName = document.getElementById('editCandName').value.trim();
+    const newContact = document.getElementById('editCandContact').value.trim();
+    const newCv = document.getElementById('editCandCV').value.trim();
+    const newNotes = document.getElementById('editCandNotes').value.trim();
+    const newTriagemDate = document.getElementById('editCandTriagemDate').value;
 
-            if (!newName) {
-                alert('O nome do candidato não pode ser vazio.');
-                return;
-            }
-            
-            const updatedCandidates = job.candidates.map(candidate => 
-                candidate.id === activeCandidate.id 
-                    ? { 
-                        ...candidate, 
-                        name: newName, 
-                        contact: newContact, 
-                        cv: newCv, 
-                        notes: newNotes,
-                        triagemDate: candidate.stage === 'Triagem' ? newTriagemDate : candidate.triagemDate 
-                      }
-                    : candidate
-            );
+    if (!newName) {
+        alert('O nome do candidato não pode ser vazio.');
+        return;
+    }
 
-            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
-            closeModal();
+    const updatedCandidates = job.candidates.map(candidate => {
+        if (candidate.id === activeCandidate.id) {
+            return {
+                ...candidate,
+                name: newName,
+                contact: newContact,
+                cv: newCv,
+                notes: newNotes,
+                triagemDate: (activeCandidate.stage === 'Triagem' && newTriagemDate) ? newTriagemDate : candidate.triagemDate
+            };
         }
+        return candidate;
+    });
 
+    try {
+        await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+        closeModal();
+    } catch (error) {
+        console.error("Erro ao salvar o candidato:", error);
+        alert("Erro ao salvar as informações. Por favor, tente novamente.");
+    }
         /******************
          * Ações (Vagas)
          ******************/
@@ -949,6 +954,7 @@ function exitEditMode() {
     </script>
 </body>
 </html>
+
 
 
 
