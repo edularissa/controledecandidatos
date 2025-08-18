@@ -235,9 +235,10 @@
                 <img src="https://i.ibb.co/vvC2vLJs/icone-do-logotipo-branco-transparente-termotubos.png" alt="Logo da Termotubos" style="height: 24px;"> Vagas & Candidatos
             </div>
             <div class="toolbar">
-<button class="btn small" id="exportBtn">Exportar JSON</button>
-    <label class="btn small ghost" for="importFile">Importar JSON</label>
-    <input id="importFile" type="file" accept="application/json" style="display:none"/>
+                <button class="btn small" id="exportBtn">Exportar JSON</button>
+                <label class="btn small ghost" for="importFile">Importar JSON</label>
+                <input id="importFile" type="file" accept="application/json" style="display:none"/>
+                <button class="btn small danger" id="resetBtn" title="Apagar tudo">Reset</button>
             </div>
         </header>
 
@@ -729,7 +730,7 @@
 
             // Ajusta o input de data de triagem no modo de edição
             const isTriagemStage = activeCandidate.stage === 'Triagem';
-            document.getElementById(\'editTriagemDateInput').style.display = isTriagemStage ? 'flex' : 'none';
+            document.getElementById('editTriagemDateInput').style.display = isTriagemStage ? 'flex' : 'none';
             document.getElementById('editCandTriagemDate').disabled = false;
         }
 
