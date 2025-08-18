@@ -927,29 +927,39 @@
             a.click();
             URL.revokeObjectURL(a.href);
         };
-        importFile.onchange = (e)=>{
-            const file = e.target.files?.[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = ()=>{
-                try{
-                    const data = JSON.parse(reader.result);
-                    if(!data || !Array.isArray(data.jobs)) throw new Error("Formato inválido.");
-                    data.jobs.forEach(job => db.collection("jobs").add(job));
-                }catch(err){
-                    alert("Falha ao importar: " + err.message);
-                }
-            };
-            reader.readAsText(file);
-            e.target.value = '';
-        };
-        resetBtn.onclick = async ()=>{
-            if(!confirm("Isto apagará todas as vagas e candidatos salvos no banco de dados. Continuar?")) return;
-            const jobsRef = db.collection("jobs");
-            const jobsSnapshot = await jobsRef.get();
+        importFile.onchange = async (e) => { // Adicionar 'async' aqui
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => { // Adicionar 'async' aqui também
+        try {
+            const data = JSON.parse(reader.result);
+            if (!data || !Array.isArray(data.jobs)) {
+                throw new Error("Formato inválido. Esperado: { jobs: [] }");
+            }
+            if (!confirm(`Isso irá adicionar ${data.jobs.length} vagas. As vagas existentes com o mesmo ID serão sobrescritas. Deseja continuar?`)) {
+                return;
+            }
+
+            // Usar o método 'batch' do Firestore para escrever múltiplos documentos de uma vez.
+            // Isso é mais eficiente e seguro.
             const batch = db.batch();
-            jobsSnapshot.docs.forEach(doc => batch.delete(doc.ref));
-            await batch.commit();
+            data.jobs.forEach(job => {
+                const docRef = db.collection("jobs").doc(job.id); // Pega o ID original
+                batch.set(docRef, job); // Seta os dados no documento com o ID original
+            });
+            
+            await batch.commit(); // Executa todas as operações em lote
+            alert("Importação concluída com sucesso!");
+
+        } catch (err) {
+            console.error(err);
+            alert("Falha ao importar. Verifique se o arquivo está no formato correto. Erro: " + err.message);
+        }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
         };
 
         /********************
@@ -973,3 +983,4 @@
     </script>
 </body>
 </html>
+
