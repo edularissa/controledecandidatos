@@ -88,7 +88,7 @@
         .job-title{font-weight:700}
         .job-desc{color:var(--text-dim); font-size:13px; line-height:1.3}
         .empty{color:var(--text-dim); font-size:13px; text-align:center; padding:10px}
-        
+
         /* Estilos adicionais para os novos campos */
         .status-pill {
             padding: 2px 8px;
@@ -220,7 +220,7 @@
             padding-top: 10px;
             border-top: 1px solid var(--soft);
         }
-        
+
         .footer{opacity:.8; font-size:12px; text-align:center; padding-top:4px}
         @media (max-width: 920px){
             .app{grid-template-columns:1fr}
@@ -275,9 +275,9 @@
             <div class="row">
                 <input id="jobSearch" placeholder="Buscar vaga por título..."/>
             </div>
-            
+
             <div class="jobs-list" id="openJobsList"></div>
-            
+
             <div class="divider"></div>
             <h2 style="margin-top:0">Vagas fechadas</h2>
             <div class="jobs-list" id="closedJobsList"></div>
@@ -390,7 +390,7 @@
             <input id="modalCandTriagemDateDisplay" type="date" disabled />
         </div>
     </div>
-    
+
     <div id="modalEditView" style="display: none;">
         <div class="input">
             <label>Contato</label>
@@ -409,7 +409,7 @@
             <input id="editCandTriagemDate" type="date" />
         </div>
     </div>
-    
+
     <div class="modal-footer">
         <div id="modalViewButtons">
             <button class="btn primary" onclick="enterEditMode()">Editar</button>
@@ -449,7 +449,7 @@
             const close = job.closeDate ? new Date(job.closeDate) : new Date();
             const diffTime = Math.abs(close - open);
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            
+
             const prazoLimite = PRAZOS[job.type];
             if (diffDays <= prazoLimite) {
                 return { text: "No Prazo", class: "no-prazo" };
@@ -460,7 +460,7 @@
         function uid(){
             return Math.random().toString(36).slice(2,9) + Date.now().toString(36).slice(-4);
         }
-        
+
         /** @typedef {{id:string, title:string, description:string, stages:string[], candidates: Candidate[]}} Job */
         /** @typedef {{id:string, name:string, contact:string, cv?:string, notes?:string, stage:string, createdAt:number}} Candidate */
 
@@ -481,7 +481,7 @@
             renderJobSection(openJobsList, openList);
             renderJobSection(closedJobsList, closedList);
         }
-        
+
         function renderJobSection(container, list) {
             container.innerHTML = '';
             if (!list.length){
@@ -526,14 +526,14 @@
             jobView.style.display = '';
 
             const isClosed = !!job.closeDate;
-            
+
             // ALTERAÇÃO: ATRIBUIÇÃO DOS NOVOS CAMPOS PARA EDIÇÃO
             editJobTitle.value = job.title;
             editJobDesc.value = job.description||'';
             editJobType.value = job.type;
             editJobOpenDate.value = job.openDate;
             editJobCloseDate.value = job.closeDate || '';
-            
+
             // ALTERAÇÃO: DESABILITAÇÃO DOS CAMPOS E BOTÕES DE VAGA FECHADA
             editJobTitle.disabled = isClosed;
             editJobDesc.disabled = isClosed;
@@ -547,7 +547,7 @@
             candContact.disabled = isClosed;
             candCV.disabled = isClosed;
             candNotes.disabled = isClosed;
-            
+
             closeJobBtn.style.display = isClosed ? 'none' : 'block';
             deleteJobBtn.style.display = 'block';
             // FIM DA ALTERAÇÃO
@@ -562,7 +562,7 @@
                 const chip = document.createElement('span');
                 chip.className = 'chip';
                 chip.innerHTML = `<span>${escapeHTML(stg)}</span>${allowEdit ? `<span class="x" title="Remover">✕</span>` : ''}`;
-                
+
                 if (allowEdit) {
                     chip.querySelector('.x').onclick = async () => {
                         const fallback = job.stages[idx-1] || job.stages[0];
@@ -630,7 +630,7 @@
                             e.dataTransfer.setData('text/plain', c.id); 
                         }
                     };
-                    
+
                     card.onclick = () => showCandidateModal(c);
 
                     card.innerHTML = `
@@ -708,7 +708,7 @@ function closeModal() {
 function enterEditMode() {
     const job = currentJob();
     if (!job || job.closeDate) return;
-    
+
     modalDisplayView.style.display = 'none';
    modalEditView.style.display = 'block';
     modalViewButtons.style.display = 'none';
@@ -731,43 +731,44 @@ function exitEditMode() {
     document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
     document.getElementById('modalDeleteBtn').style.display = 'block';
 }
-      async function saveEditedCandidate() {
-    const job = currentJob();
-    if (!job || job.closeDate || !activeCandidate) return;
+        async function saveEditedCandidate() {
+       async function saveEditedCandidate() {
+            const job = currentJob();
+            if (!job || job.closeDate || !activeCandidate) return;
 
-    // Obtém os valores dos campos de edição
-    const newName = document.getElementById('editCandName').value.trim();
-    const newContact = document.getElementById('editCandContact').value.trim();
-    const newCv = document.getElementById('editCandCV').value.trim();
-    const newNotes = document.getElementById('editCandNotes').value.trim();
-    const newTriagemDate = document.getElementById('editCandTriagemDate').value;
+            const newName = editCandName.value.trim();
+            const newContact = editCandContact.value.trim();
+            const newCv = editCandCV.value.trim();
+            const newNotes = editCandNotes.value.trim();
+            const newTriagemDate = editCandTriagemDate.value;
+            const newName = document.getElementById('editCandName').value.trim();
+            const newContact = document.getElementById('editCandContact').value.trim();
+            const newCv = document.getElementById('editCandCV').value.trim();
+            const newNotes = document.getElementById('editCandNotes').value.trim();
+            const newTriagemDate = document.getElementById('editCandTriagemDate').value;
 
-    if (!newName) {
-        alert('O nome do candidato não pode ser vazio.');
-        return;
-    }
+            if (!newName) {
+                alert('O nome do candidato não pode ser vazio.');
+                return;
+            }
 
-    const updatedCandidates = job.candidates.map(candidate => {
-        if (candidate.id === activeCandidate.id) {
-            return {
-                ...candidate,
-                name: newName,
-                contact: newContact,
-                cv: newCv,
-                notes: newNotes,
-                triagemDate: (activeCandidate.stage === 'Triagem' && newTriagemDate) ? newTriagemDate : candidate.triagemDate
-            };
+            const updatedCandidates = job.candidates.map(candidate => 
+                candidate.id === activeCandidate.id 
+                    ? { 
+                        ...candidate, 
+                        name: newName, 
+                        contact: newContact, 
+                        cv: newCv, 
+                        notes: newNotes,
+                        triagemDate: candidate.stage === 'Triagem' ? newTriagemDate : candidate.triagemDate 
+                      }
+                    : candidate
+            );
+
+            await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
+            closeModal();
         }
-        return candidate;
-    });
 
-    try {
-        await db.collection("jobs").doc(job.id).update({ candidates: updatedCandidates });
-        closeModal();
-    } catch (error) {
-        console.error("Erro ao salvar o candidato:", error);
-        alert("Erro ao salvar as informações. Por favor, tente novamente.");
-    }
         /******************
          * Ações (Vagas)
          ******************/
@@ -954,8 +955,3 @@ function exitEditMode() {
     </script>
 </body>
 </html>
-
-
-
-
-
