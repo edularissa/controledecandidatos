@@ -731,15 +731,15 @@ function exitEditMode() {
     document.getElementById('modalViewButtons').querySelector('button.primary').style.display = 'block';
     document.getElementById('modalDeleteBtn').style.display = 'block';
 }
-        async function saveEditedCandidate() {
+       async function saveEditedCandidate() {
             const job = currentJob();
             if (!job || job.closeDate || !activeCandidate) return;
 
-            const newName = editCandName.value.trim();
-            const newContact = editCandContact.value.trim();
-            const newCv = editCandCV.value.trim();
-            const newNotes = editCandNotes.value.trim();
-            const newTriagemDate = editCandTriagemDate.value;
+            const newName = document.getElementById('editCandName').value.trim();
+            const newContact = document.getElementById('editCandContact').value.trim();
+            const newCv = document.getElementById('editCandCV').value.trim();
+            const newNotes = document.getElementById('editCandNotes').value.trim();
+            const newTriagemDate = document.getElementById('editCandTriagemDate').value;
 
             if (!newName) {
                 alert('O nome do candidato não pode ser vazio.');
@@ -949,6 +949,7 @@ function exitEditMode() {
     </script>
 </body>
 </html>
+
 
 
 
