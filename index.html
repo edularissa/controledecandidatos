@@ -435,8 +435,8 @@ const firebaseConfig = {
   appId: "1:832627853482:web:4ca4ae8bc0023416cb68d3"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
 let state = { jobs: [], selectedJobId: null };
 const PRAZOS = {
@@ -951,6 +951,7 @@ alert("Não foi possível conectar ao banco de dados. Verifique a sua conexão e
 </script>
 </body>
 </html>
+
 
 
 
