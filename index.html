@@ -2,155 +2,288 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>OGSM Dashboard v2.5</title>
+<title>OGSM Dashboard Enterprise v5.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
+
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:"Inter", sans-serif; background:#eef1f5; padding-bottom:80px; }
+body { font-family:"Inter", sans-serif; background:#f4f7fa; padding-bottom:80px; color: #333; }
 
-/* HEADER */
+/* HEADER & BUSCA */
 .header {
-    background: linear-gradient(135deg,#355ca8,#4a8fe0);
-    padding:26px; color:white; display:flex; gap:15px;
-    position:sticky; top:0; z-index:20; align-items:center;
-    box-shadow:0 4px 15px rgba(0,0,0,0.18);
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    padding:20px 30px; color:white; display:flex; gap:20px;
+    position:sticky; top:0; z-index:50; align-items:center;
+    box-shadow:0 4px 20px rgba(0,0,0,0.1);
 }
+.header h2 { font-weight: 600; letter-spacing: -0.5px; white-space: nowrap; }
+.search-bar { flex: 1; max-width: 400px; position: relative; margin-left: auto;}
+.search-bar input { width: 100%; padding: 10px 15px 10px 40px; border-radius: 20px; border: none; outline: none; font-family: 'Inter'; background: rgba(255,255,255,0.2); color: white; transition: 0.3s;}
+.search-bar input::placeholder { color: rgba(255,255,255,0.7); }
+.search-bar input:focus { background: white; color: #333; }
+.search-bar i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.7); transition: 0.3s;}
+.search-bar input:focus + i { color: #333; }
 
-/* GRID DE GOALS */
-.container { 
-    padding:25px; max-width:1200px; margin:auto;
-    display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:25px;
-}
+/* SISTEMA DE NOTIFICAÇÕES */
+.notification-wrapper { position: relative; margin-right: 15px; }
+.notification-bell { background: rgba(255,255,255,0.2); border: none; color: white; width: 40px; height: 40px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; position: relative; transition: 0.3s; display: flex; align-items: center; justify-content: center; }
+.notification-bell:hover { background: rgba(255,255,255,0.3); }
+.notification-badge { position: absolute; top: -5px; right: -5px; background: #e53e3e; color: white; font-size: 10px; font-weight: bold; width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; display: none; border: 2px solid #1e3c72;}
+.notification-panel { position: absolute; top: 50px; right: 0; background: white; width: 350px; border-radius: 16px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); display: none; flex-direction: column; overflow: hidden; z-index: 100; border: 1px solid #edf2f7; animation: fadeIn 0.2s ease;}
+.notification-header { padding: 15px 20px; background: #f8fafc; border-bottom: 1px solid #edf2f7; font-weight: 600; color: #2d3748; display: flex; justify-content: space-between; align-items: center;}
+.notification-list { max-height: 350px; overflow-y: auto; display: flex; flex-direction: column; }
+.notification-item { padding: 15px 20px; border-bottom: 1px solid #edf2f7; display: flex; gap: 12px; align-items: flex-start; transition: 0.2s; }
+.notification-item:hover { background: #f8fafc; }
+.notification-icon { background: #ebf8ff; color: #3182ce; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 14px;}
+.notification-content { font-size: 13px; color: #4a5568; line-height: 1.4; }
+.notification-time { font-size: 11px; color: #a0aec0; margin-top: 4px; display: block; }
+.notification-empty { padding: 30px; text-align: center; color: #a0aec0; font-size: 13px; font-style: italic; }
 
-/* CARD DO GOAL */
-.goal-card { 
-    background:#fff; padding:28px; border-radius:20px;
-    box-shadow:0 6px 20px rgba(0,0,0,0.07); transition:.25s; border:1px solid #e3e6ea;
-}
-.goal-card:hover { transform:translateY(-6px); box-shadow:0 10px 28px rgba(0,0,0,0.12); }
+/* CONTROLES DE VISÃO E RESUMO */
+.top-controls { max-width: 1250px; margin: 30px auto 10px; padding: 0 30px; display: flex; gap: 30px; align-items: flex-start; }
+.dashboard-stats { background: white; padding: 20px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); width: 280px; display: flex; flex-direction: column; align-items: center;}
+.chart-container { width: 200px; height: 200px; margin-top: 10px; }
+.view-toggles { display: flex; gap: 10px; margin-left: auto; align-items: center; background: white; padding: 10px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.03);}
+.btn-toggle { padding: 10px 20px; border: none; background: transparent; cursor: pointer; border-radius: 10px; font-weight: 600; color: #718096; transition: 0.3s;}
+.btn-toggle.active { background: #e2e8f0; color: #2d3748; }
 
-/* STRATEGIC CARD */
-.strategic-card { background:#f7f9fc; padding:18px; border-radius:16px; margin-top:20px;
-    border-left:6px solid #4a90e2; cursor:pointer; transition:.2s;
-}
-.strategic-card:hover{ background:#eef2f9; }
-.strategic-title { display:flex; justify-content:space-between; align-items:center;
-    font-size:17px; font-weight:600;
-}
-.strategic-content{ margin-top:18px; display:none; }
+/* GRID DE GOALS E KANBAN (Mesmo do anterior) */
+.container { padding:20px 30px; max-width:1250px; margin:auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:30px; }
+.kanban-board { display: none; padding:20px 30px; max-width:1250px; margin:auto; gap:25px; align-items: flex-start; }
+.kanban-column { background: #e2e8f0; padding: 15px; border-radius: 16px; flex: 1; min-width: 300px; display: flex; flex-direction: column; gap: 10px; min-height: 400px; }
+.kanban-column-header { font-weight: 700; color: #2d3748; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;}
+.kanban-count { background: white; padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 
-/* ACTIVITIES */
-.activity { background:#fff; padding:16px; border-radius:14px; margin-bottom:12px;
-    border-left:6px solid #7b61ff; box-shadow:0 3px 12px rgba(0,0,0,0.08);
-    cursor:pointer; transition:0.2s; position:relative;
-}
-.activity:hover{ background:#f1f4fb; }
+/* CARDS E ATIVIDADES */
+.goal-card { background:#fff; padding:28px; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,0.05); border:1px solid #edf2f7; display: flex; flex-direction: column; }
+.goal-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;}
+.goal-title { font-size: 1.3rem; font-weight: 700; color: #1a202c; display: flex; gap: 10px; align-items: center;}
+.progress-container { margin: 15px 0; }
+.progress-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #718096; margin-bottom: 8px;}
+.progress-bar { width: 100%; height: 8px; background: #edf2f7; border-radius: 10px; overflow: hidden; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, #4299e1, #3182ce); border-radius: 10px; transition: width 0.8s ease; }
+.strategic-card { background:#f8fafc; padding:18px; border-radius:16px; margin-top:auto; border-left:5px solid #4299e1; cursor:pointer; transition:.2s; }
+.strategic-card:hover{ background:#edf2f7; }
+.strategic-title { display:flex; justify-content:space-between; align-items:center; font-size:16px; font-weight:600;}
+.strategic-content{ margin-top:18px; display:none; animation: fadeIn 0.3s ease; }
 
-/* INDICADOR */
-.status-indicador{ font-size:14px; margin-left:6px; }
+/* ACTIVITY ITEM */
+.activity { background:#fff; padding:16px; border-radius:14px; margin-bottom:12px; border-left:5px solid #805ad5; box-shadow:0 4px 15px rgba(0,0,0,0.03); cursor:grab; transition: transform 0.2s, box-shadow 0.2s; border: 1px solid #edf2f7; position: relative;}
+.activity:active { cursor: grabbing; }
+.activity:hover{ transform: translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+.activity-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;}
+.activity-title { font-weight: 600; font-size: 14px; color: #2d3748;}
+.activity-meta { font-size: 12px; color: #718096; display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; }
+.sortable-ghost { opacity: 0.4; background: #edf2f7; border: 2px dashed #a0aec0; }
 
-/* BUTTONS */
-.btn{ padding:12px; border:none; border-radius:10px; cursor:pointer; margin-top:12px; font-size:15px; font-weight:600; }
-.btn-primary{ background:#4a90e2; color:white; box-shadow:0 3px 8px rgba(74,144,226,0.35); }
-.btn-primary:hover{ background:#3b7acc; }
-.btn-danger{ background:#d9534f; color:white; box-shadow:0 3px 8px rgba(217,83,79,0.35); }
-.btn-danger:hover{ background:#c74340; }
+/* HISTÓRICO DE COMENTÁRIOS */
+.comments-section { background: #f8fafc; border-radius: 12px; padding: 15px; margin-top: 15px; max-height: 200px; overflow-y: auto; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px;}
+.comment-item { background: white; padding: 10px; border-radius: 8px; font-size: 13px; border-left: 3px solid #4299e1; box-shadow: 0 2px 5px rgba(0,0,0,0.02);}
+.comment-date { font-size: 11px; color: #a0aec0; margin-bottom: 3px; display: block;}
 
-/* MODAL GERAL */
-.modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:999; }
-.modal-content{ background:white; padding:25px; width:420px; border-radius:14px; max-height:90vh; overflow-y:auto; }
+/* BADGES E BOTÕES */
+.badge { padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; display: inline-block; white-space: nowrap;}
+.badge-nao-iniciado { background: #edf2f7; color: #4a5568; }
+.badge-andamento { background: #fefcbf; color: #b7791f; }
+.badge-concluido { background: #c6f6d5; color: #22543d; }
+.badge-atrasado { background: #fed7d7; color: #c53030; margin-top: 5px; display: inline-block;}
+.btn { padding:10px 18px; border:none; border-radius:12px; cursor:pointer; font-size:14px; font-weight:600; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 8px; justify-content: center;}
+.btn-primary { background:#3182ce; color:white; }
+.btn-primary:hover { background:#2b6cb0; transform: translateY(-2px); box-shadow:0 6px 15px rgba(49,130,206,0.3); }
+.btn-danger { background:#e53e3e; color:white; padding: 6px 12px; font-size: 12px;}
+.btn-icon { background: transparent; color: #a0aec0; border: none; font-size: 16px; cursor: pointer; transition: 0.2s;}
+.btn-icon:hover { color: #e53e3e; }
 
-/* MODAL DETALHE DA ATIVIDADE */
-#modalDetalheAtividade .modal-content{ width:500px; }
+/* MODAL */
+.modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); align-items:center; justify-content:center; z-index:999; animation: fadeIn 0.2s ease; }
+.modal-content { background:white; padding:30px; width:450px; border-radius:24px; box-shadow: 0 25px 50px rgba(0,0,0,0.15); max-height:90vh; overflow-y:auto; }
+.modal-content label { font-weight: 600; font-size: 13px; color: #4a5568; margin-top: 15px; display: block; margin-bottom: 5px;}
+.modal-content input, .modal-content select, .modal-content textarea { width:100%; padding:10px 15px; border-radius:10px; border:1px solid #e2e8f0; font-family: inherit; font-size: 14px; background: #f8fafc; transition: 0.2s;}
+.modal-content input:focus, .modal-content textarea:focus { outline: none; border-color: #3182ce; background: white;}
+#modalDetalheAtividade .modal-content { width:600px; }
 
-/* TABELA FINAL */
-.table-container { max-width:1200px; margin:auto; margin-top:40px; padding:0 20px; }
-.table-container table{ width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,0.08);}
-.table-container th, .table-container td{ padding:12px 15px; border-bottom:1px solid #e0e0e0; text-align:left; }
-.table-container th{ background:#4a90e2; color:white; font-weight:600; }
-.table-container tr:hover{ background:#f1f4fb; }
-.filter-group{ margin-bottom:15px; display:flex; gap:15px; align-items:center; }
-.filter-group label{ font-weight:600; }
-.filter-group select{ padding:6px 10px; border-radius:8px; border:1px solid #ccc; }
+/* FILTROS E TABELA */
+.table-container { max-width:1250px; margin:auto; margin-top:10px; padding:0 30px; }
+.filter-group { margin-bottom:20px; display:flex; flex-wrap: wrap; gap:15px; align-items:center; background: #fff; padding: 20px; border-radius: 16px; box-shadow:0 4px 15px rgba(0,0,0,0.03); border: 1px solid #edf2f7;}
+.filter-item { display: flex; flex-direction: column; gap: 5px; }
+.filter-item label { font-weight: 600; color: #4a5568; font-size: 12px; text-transform: uppercase;}
+.filter-item select, .filter-item input { padding:8px 12px; border-radius:8px; border:1px solid #e2e8f0; font-size: 13px; background: #f8fafc; outline: none;}
+.table-wrapper { background:#fff; border-radius:16px; box-shadow:0 10px 30px rgba(0,0,0,0.05); overflow:auto; border: 1px solid #edf2f7;}
+table { width:100%; border-collapse:collapse; min-width: 800px;}
+th, td { padding:14px 20px; border-bottom:1px solid #edf2f7; text-align:left; font-size: 13px;}
+th { background:#f8fafc; color:#4a5568; font-weight:600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px;}
+tr:hover td { background:#f8fafc; }
 
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.empty-state { text-align: center; padding: 20px; color: #a0aec0; font-size: 13px; font-style: italic;}
 </style>
 </head>
 <body>
 
 <div class="header">
-    <i class="bi bi-kanban"></i>
-    <h2 style="margin-right:auto;">OGSM Dashboard</h2>
-    <button onclick="abrirFormGoal()" class="btn btn-primary">+ Novo Goal</button>
+    <i class="bi bi-kanban" style="font-size: 1.5rem;"></i>
+    <h2>OGSM Dashboard</h2>
+    
+    <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Buscar atividade, responsável ou goal..." oninput="aplicarFiltrosEBusca()">
+        <i class="bi bi-search"></i>
+    </div>
+
+    <div class="notification-wrapper">
+        <button class="notification-bell" id="btn-notificacao" onclick="toggleNotificacoes()">
+            <i class="bi bi-bell-fill"></i>
+            <span class="notification-badge" id="badge-notificacao">0</span>
+        </button>
+        <div class="notification-panel" id="panel-notificacao">
+            <div class="notification-header">
+                Atividades Recentes
+                <button class="btn-icon" style="font-size: 12px;" onclick="marcarComoLido()"><i class="bi bi-check2-all"></i> Marcar lidas</button>
+            </div>
+            <div class="notification-list" id="lista-notificacoes">
+                <div class="notification-empty">Carregando histórico...</div>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="abrirFormGoal()" class="btn" style="background: rgba(255,255,255,0.2); color:white;"><i class="bi bi-plus-lg"></i> Novo Goal</button>
+</div>
+
+<div class="top-controls">
+    <div class="dashboard-stats">
+        <h3 style="font-size: 14px; color: #4a5568;">Status Geral (Atividades)</h3>
+        <div class="chart-container">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+
+    <div class="view-toggles">
+        <button class="btn-toggle active" id="btn-grid" onclick="mudarVisao('grid')"><i class="bi bi-grid-1x2"></i> Visão Goals</button>
+        <button class="btn-toggle" id="btn-kanban" onclick="mudarVisao('kanban')"><i class="bi bi-layout-three-columns"></i> Kanban</button>
+    </div>
 </div>
 
 <div class="container" id="lista-goals"></div>
 
+<div class="kanban-board" id="kanban-board">
+    <div class="kanban-column" id="col-nao-iniciado" data-status="Não iniciado">
+        <div class="kanban-column-header">Não Iniciado <span class="kanban-count" id="count-nao">0</span></div>
+        <div class="kanban-items" id="items-nao-iniciado" style="min-height: 100%;"></div>
+    </div>
+    <div class="kanban-column" id="col-em-andamento" data-status="Em andamento" style="background: #fefcbf;">
+        <div class="kanban-column-header" style="color: #975a16;">Em Andamento <span class="kanban-count" id="count-and">0</span></div>
+        <div class="kanban-items" id="items-em-andamento" style="min-height: 100%;"></div>
+    </div>
+    <div class="kanban-column" id="col-concluido" data-status="Concluído" style="background: #c6f6d5;">
+        <div class="kanban-column-header" style="color: #22543d;">Concluído <span class="kanban-count" id="count-conc">0</span></div>
+        <div class="kanban-items" id="items-concluido" style="min-height: 100%;"></div>
+    </div>
+</div>
+
 <div id="modalGoal" class="modal">
     <div class="modal-content">
-        <h2 id="tituloGoalForm">Novo Goal</h2>
+        <h2 id="tituloGoalForm" style="font-size: 1.2rem; margin-bottom: 15px;">Novo Goal Estratégico</h2>
         <label>Título do Goal</label>
-        <input id="goalTitulo" type="text" style="width:100%; padding:8px; margin-top:10px;">
-        <button onclick="salvarGoal()" class="btn btn-primary" style="width:100%; margin-top:20px;">Salvar</button>
-        <button onclick="fecharModalGoal()" class="btn" style="width:100%; background:#ccc; margin-top:10px;">Cancelar</button>
+        <input id="goalTitulo" type="text" placeholder="Ex: Expandir para o mercado internacional">
+        <button onclick="salvarGoal()" class="btn btn-primary" style="width:100%; margin-top:20px;">Salvar Goal</button>
+        <button onclick="fecharModal('modalGoal')" class="btn" style="width:100%; background:#edf2f7; color: #4a5568; margin-top:10px;">Cancelar</button>
     </div>
 </div>
 
 <div id="modalDetalheAtividade" class="modal">
     <div class="modal-content">
-        <h2>Detalhes da Atividade</h2>
-        <label>Título</label>
-        <input id="d_titulo" type="text" style="width:100%; padding:8px; margin-bottom:12px;">
-        <label>Responsável</label>
-        <input id="d_resp" type="text" style="width:100%; padding:8px; margin-bottom:12px;">
-        <label>Prazo</label>
-        <input id="d_prazo" type="date" style="width:100%; padding:8px; margin-bottom:12px;">
-        <label>Status</label>
-        <select id="d_status" style="width:100%; padding:8px; margin-bottom:12px;">
-            <option>Não iniciado</option>
-            <option>Em andamento</option>
-            <option>Concluído</option>
-        </select>
-        <label>Acompanhamento</label>
-        <textarea id="d_acomp" rows="4" style="width:100%; padding:8px;"></textarea>
-        <button onclick="salvarDetalheAtividade()" class="btn btn-primary" style="width:100%; margin-top:20px;">Salvar</button>
-        <button onclick="fecharModalDetalhe()" class="btn" style="width:100%; background:#ccc; margin-top:10px;">Fechar</button>
+        <h2 style="font-size: 1.2rem; margin-bottom: 10px;">Detalhes da Atividade</h2>
+        
+        <label>Título da Atividade</label>
+        <input id="d_titulo" type="text" placeholder="O que precisa ser feito?">
+        
+        <div style="display: flex; gap: 15px;">
+            <div style="flex: 1;">
+                <label>Responsável</label>
+                <input id="d_resp" type="text" placeholder="Nome">
+            </div>
+            <div style="flex: 1;">
+                <label>Prazo Limite</label>
+                <input id="d_prazo" type="date">
+            </div>
+            <div style="flex: 1;">
+                <label>Status</label>
+                <select id="d_status">
+                    <option value="Não iniciado">Não iniciado</option>
+                    <option value="Em andamento">Em andamento</option>
+                    <option value="Concluído">Concluído</option>
+                </select>
+            </div>
+        </div>
+        
+        <label style="margin-top: 20px;"><i class="bi bi-clock-history"></i> Histórico de Acompanhamento</label>
+        <div id="historico_container" class="comments-section"></div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 10px;">
+            <input id="novo_comentario" type="text" placeholder="Adicione uma atualização ou comentário..." style="flex: 1;">
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 25px;">
+            <button onclick="fecharModal('modalDetalheAtividade')" class="btn" style="flex: 1; background:#edf2f7; color: #4a5568;">Fechar</button>
+            <button onclick="salvarDetalheAtividade()" class="btn btn-primary" style="flex: 2;"><i class="bi bi-check2"></i> Salvar Atividade</button>
+        </div>
     </div>
 </div>
 
 <div class="table-container">
   <div class="filter-group">
-    <label>Status:</label>
-    <select id="f_status" onchange="renderizarTabela()">
-      <option value="">Todos</option>
-      <option value="Não iniciado">Não iniciado</option>
-      <option value="Em andamento">Em andamento</option>
-      <option value="Concluído">Concluído</option>
-    </select>
-
-    <label>Responsável:</label>
-    <select id="f_resp" onchange="renderizarTabela()">
-      <option value="">Todos</option>
-    </select>
+    <div class="filter-item">
+        <label>Status</label>
+        <select id="f_status" onchange="aplicarFiltrosEBusca()">
+            <option value="">Todos</option>
+            <option value="Não iniciado">Não iniciado</option>
+            <option value="Em andamento">Em andamento</option>
+            <option value="Concluído">Concluído</option>
+        </select>
+    </div>
+    <div class="filter-item">
+        <label>Responsável</label>
+        <select id="f_resp" onchange="aplicarFiltrosEBusca()">
+            <option value="">Todos</option>
+        </select>
+    </div>
+    <div class="filter-item">
+        <label>Data Início (Prazo)</label>
+        <input type="date" id="f_data_inicio" onchange="aplicarFiltrosEBusca()">
+    </div>
+    <div class="filter-item">
+        <label>Data Fim (Prazo)</label>
+        <input type="date" id="f_data_fim" onchange="aplicarFiltrosEBusca()">
+    </div>
+    <div class="filter-item" style="margin-left: auto;">
+        <button onclick="limparFiltros()" class="btn" style="background: #edf2f7; color: #4a5568;"><i class="bi bi-eraser"></i> Limpar Filtros</button>
+    </div>
   </div>
-  <table id="tabelaAtividades">
-    <thead>
-      <tr>
-        <th>Goal</th>
-        <th>Título</th>
-        <th>Responsável</th>
-        <th>Prazo</th>
-        <th>Status</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
+  
+  <div class="table-wrapper">
+      <table id="tabelaAtividades">
+        <thead>
+          <tr>
+            <th>Goal Relacionado</th>
+            <th>Atividade</th>
+            <th>Responsável</th>
+            <th>Prazo</th>
+            <th>Status</th>
+            <th style="text-align: right;">Ações</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+  </div>
 </div>
 
 <script type="module">
+// Adicionado os módulos onSnapshot, query, orderBy e limit para o sistema de notificação em tempo real
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc, onSnapshot, query, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBRVfdcyHllNOuGc-tp-sFuh8UA9S1uOOE",
@@ -165,202 +298,507 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-let goalEditId = null;
+// Estados Globais
 let detalheGoalId = null;
 let detalheAtivId = null;
-let todasAtividades = []; // Variável para armazenar dados localmente e fazer os filtros funcionarem rápido
+let comentariosAtuais = [];
+let todasAtividades = [];
+let todosGoals = [];
+let meuGrafico = null;
+let visaoAtual = 'grid';
+let notificacoesNaoLidas = 0;
 
-/* ==================== CARREGAR GOALS ==================== */
-async function carregarGoals() {
-    const container = document.getElementById("lista-goals");
-    container.innerHTML = "";
-    const goalsSnap = await getDocs(collection(db, "goals"));
-    for(const goalDoc of goalsSnap.docs){
-        const goal = goalDoc.data();
-        container.innerHTML += `
-            <div class="goal-card" id="goal-${goalDoc.id}">
-                <h2><i class="bi bi-bullseye"></i> ${goal.titulo}</h2>
-                <div class="strategic-card" onclick="toggleContent(this)">
-                    <div class="strategic-title">
-                        <span>Atividades</span>
-                        <i class="bi bi-chevron-down arrow"></i>
-                    </div>
-                    <div class="strategic-content" id="ativ-${goalDoc.id}">
-                        <p>Carregando atividades...</p>
-                    </div>
-                    <button onclick="abrirFormAtividade(event,'${goalDoc.id}')" class="btn btn-primary">+ Nova Atividade</button>
-                </div>
-                <button onclick="excluirGoal('${goalDoc.id}')" class="btn btn-danger" style="margin-top:15px;">Excluir Goal</button>
-            </div>
-        `;
-        await carregarAtividades(goalDoc.id);
-    }
-    await carregarTabelaCompleta(); // Chamada atualizada para carregar a tabela final
-}
+/* ==================== SISTEMA DE NOTIFICAÇÕES (NOVO) ==================== */
 
-/* ==================== CARREGAR ATIVIDADES ==================== */
-async function carregarAtividades(goalId) {
-    const lista = document.getElementById("ativ-" + goalId);
-    lista.innerHTML = "";
-    const q = await getDocs(collection(db, "goals", goalId, "atividades"));
-    q.forEach(ativDoc => {
-        const a = ativDoc.data();
-        const hoje = new Date();
-        const prazo = new Date(a.prazo);
-        const atrasada = prazo < hoje && a.status !== "Concluído";
-        const indicador = atrasada ? "<span class='status-indicador' style='color:red'>●</span>" : "<span class='status-indicador' style='color:green'>●</span>";
-
-        lista.innerHTML += `
-            <div class="activity" onclick="abrirDetalheAtividade('${goalId}','${ativDoc.id}','${a.titulo}','${a.responsavel}','${a.prazo}','${a.status}','${a.acompanhamento}')">
-                <div><b>Título:</b> ${a.titulo} ${indicador}</div>
-                <div><b>Responsável:</b> ${a.responsavel}</div>
-                <div><b>Prazo:</b> ${a.prazo}</div>
-                <button class="btn btn-danger" onclick="excluirAtividade(event,'${goalId}','${ativDoc.id}')">Excluir</button>
-            </div>
-        `;
+// Função para registrar logs no Firebase
+async function registrarLog(acao, descricao, icone) {
+    await addDoc(collection(db, "logs"), {
+        acao: acao,
+        descricao: descricao,
+        icone: icone || 'bi-info-circle',
+        dataHora: new Date().toISOString()
     });
 }
 
-/* ==================== MODAL CRIAR / DETALHE ATIVIDADE ==================== */
-// Função nova para inserir atividade
-window.abrirFormAtividade = function(event, goalId) {
-    event.stopPropagation();
-    detalheGoalId = goalId; 
-    detalheAtivId = null; // null indica que é criação
-    document.getElementById("d_titulo").value = "";
-    document.getElementById("d_resp").value = "";
-    document.getElementById("d_prazo").value = "";
-    document.getElementById("d_status").value = "Não iniciado";
-    document.getElementById("d_acomp").value = "";
-    document.getElementById("modalDetalheAtividade").style.display = "flex";
-}
-
-window.abrirDetalheAtividade = function(goalId, ativId, titulo, resp, prazo, status, acomp){
-    detalheGoalId = goalId; detalheAtivId = ativId;
-    document.getElementById("d_titulo").value = titulo;
-    document.getElementById("d_resp").value = resp;
-    document.getElementById("d_prazo").value = prazo;
-    document.getElementById("d_status").value = status;
-    document.getElementById("d_acomp").value = acomp;
-    document.getElementById("modalDetalheAtividade").style.display = "flex";
-}
-
-window.fecharModalDetalhe = ()=>{document.getElementById("modalDetalheAtividade").style.display="none";}
-
-window.salvarDetalheAtividade = async function(){
-    const dados={
-        titulo:document.getElementById("d_titulo").value,
-        responsavel:document.getElementById("d_resp").value,
-        prazo:document.getElementById("d_prazo").value,
-        status:document.getElementById("d_status").value,
-        acompanhamento:document.getElementById("d_acomp").value
-    };
+// Escutar as notificações em tempo real
+function escutarNotificacoes() {
+    const q = query(collection(db, "logs"), orderBy("dataHora", "desc"), limit(20));
     
-    if (detalheAtivId) {
-        // Atualiza atividade existente
-        await updateDoc(doc(db,"goals",detalheGoalId,"atividades",detalheAtivId),dados);
+    onSnapshot(q, (snapshot) => {
+        const lista = document.getElementById("lista-notificacoes");
+        lista.innerHTML = "";
+        
+        if (snapshot.empty) {
+            lista.innerHTML = '<div class="notification-empty">Nenhum registro de atividade ainda.</div>';
+            return;
+        }
+
+        let isPrimeiroLoad = true;
+        
+        snapshot.forEach((docSnap) => {
+            const log = docSnap.data();
+            // Formatar dataHora para exibição (ex: 14/08/2024 às 15:30)
+            const d = new Date(log.dataHora);
+            const dataFormatada = `${d.toLocaleDateString('pt-BR')} às ${d.toLocaleTimeString('pt-BR', {hour: '2-digit', minute:'2-digit'})}`;
+            
+            lista.innerHTML += `
+                <div class="notification-item">
+                    <div class="notification-icon"><i class="bi ${log.icone}"></i></div>
+                    <div>
+                        <div class="notification-content"><b>${log.acao}</b>: ${log.descricao}</div>
+                        <span class="notification-time">${dataFormatada}</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        // Aumenta o contador de não lidas sempre que chegar uma alteração e o painel estiver fechado
+        const panel = document.getElementById("panel-notificacao");
+        if(panel.style.display !== "flex") {
+            notificacoesNaoLidas++;
+            atualizarBadgeNotificacao();
+        }
+    });
+}
+
+window.toggleNotificacoes = function() {
+    const panel = document.getElementById("panel-notificacao");
+    if (panel.style.display === "flex") {
+        panel.style.display = "none";
     } else {
-        // Cria nova atividade
-        await addDoc(collection(db,"goals",detalheGoalId,"atividades"),dados);
+        panel.style.display = "flex";
+        marcarComoLido(); // Reseta o contador ao abrir
     }
-    
-    fecharModalDetalhe();
-    await carregarAtividades(detalheGoalId);
-    await carregarTabelaCompleta(); // Sincroniza a tabela ao salvar
 }
 
-/* ==================== EXCLUIR ATIVIDADE ==================== */
-window.excluirAtividade = async function(event,goalId,ativId){
-    event.stopPropagation();
-    if(!confirm("Excluir atividade?")) return;
-    await deleteDoc(doc(db,"goals",goalId,"atividades",ativId));
-    await carregarAtividades(goalId);
-    await carregarTabelaCompleta(); // Sincroniza a tabela ao excluir
+window.marcarComoLido = function() {
+    notificacoesNaoLidas = 0;
+    atualizarBadgeNotificacao();
 }
 
-/* ==================== CRUD GOAL ==================== */
-window.abrirFormGoal=()=>{goalEditId=null;document.getElementById("tituloGoalForm").innerText="Novo Goal";document.getElementById("goalTitulo").value="";document.getElementById("modalGoal").style.display="flex";}
-window.fecharModalGoal=()=>{document.getElementById("modalGoal").style.display="none";}
-window.salvarGoal=async function(){
-    const titulo=document.getElementById("goalTitulo").value.trim();
-    if(!titulo) return alert("Digite um título");
-    await addDoc(collection(db,"goals"),{titulo});
-    fecharModalGoal();
-    carregarGoals();
+function atualizarBadgeNotificacao() {
+    const badge = document.getElementById("badge-notificacao");
+    if (notificacoesNaoLidas > 0) {
+        badge.innerText = notificacoesNaoLidas > 9 ? '9+' : notificacoesNaoLidas;
+        badge.style.display = "flex";
+    } else {
+        badge.style.display = "none";
+    }
 }
-window.excluirGoal=async function(id){if(!confirm("Excluir este goal?")) return;await deleteDoc(doc(db,"goals",id));carregarGoals();}
 
-/* ==================== TABELA FILTRADA LOCAL (NOVA LÓGICA) ==================== */
-window.carregarTabelaCompleta = async function() {
-    todasAtividades = []; // Reseta o cache
+// Fecha o painel de notificação se clicar fora
+document.addEventListener('click', function(event) {
+    const wrapper = document.querySelector('.notification-wrapper');
+    const panel = document.getElementById('panel-notificacao');
+    if (panel.style.display === 'flex' && !wrapper.contains(event.target)) {
+        panel.style.display = 'none';
+    }
+});
+
+
+// Helpers
+function getBadgeClass(status) {
+    if(status === 'Concluído') return 'badge-concluido';
+    if(status === 'Em andamento') return 'badge-andamento';
+    return 'badge-nao-iniciado';
+}
+function formatData(dataISO) {
+    if(!dataISO) return '-';
+    const p = dataISO.split('-');
+    return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dataISO;
+}
+function checkAtraso(prazoISO, status) {
+    if(!prazoISO || status === 'Concluído') return false;
+    return new Date(prazoISO) < new Date(new Date().setHours(0,0,0,0));
+}
+
+/* ==================== INICIALIZAÇÃO E BUSCA DE DADOS ==================== */
+async function carregarTudo() {
+    todosGoals = [];
+    todasAtividades = [];
     let responsaveisSet = new Set();
 
     const goalsSnap = await getDocs(collection(db, "goals"));
+    
     for (const goalDoc of goalsSnap.docs) {
-        const goal = goalDoc.data();
-        const ativSnap = await getDocs(collection(db, "goals", goalDoc.id, "atividades"));
+        const goal = { id: goalDoc.id, ...goalDoc.data() };
+        todosGoals.push(goal);
         
+        const ativSnap = await getDocs(collection(db, "goals", goalDoc.id, "atividades"));
         ativSnap.forEach(a => {
             const data = a.data();
             if(data.responsavel) responsaveisSet.add(data.responsavel);
-            todasAtividades.push({
-                id: a.id,
-                goalId: goalDoc.id,
-                goalTitulo: goal.titulo,
-                ...data
+            todasAtividades.push({ 
+                id: a.id, 
+                goalId: goalDoc.id, 
+                goalTitulo: goal.titulo, 
+                comentarios: data.comentarios || [],
+                ...data 
             });
         });
     }
 
-    // Atualiza o select apenas na carga inicial, preservando o valor que o usuário escolheu
     const fResp = document.getElementById("f_resp");
-    const valorAtual = fResp.value; 
+    const valResp = fResp.value;
     fResp.innerHTML = "<option value=''>Todos</option>";
     responsaveisSet.forEach(r => fResp.innerHTML += `<option value="${r}">${r}</option>`);
-    fResp.value = valorAtual;
+    fResp.value = valResp;
 
-    renderizarTabela(); // Aplica os filtros na tela
+    aplicarFiltrosEBusca(); 
 }
 
-window.renderizarTabela = function() {
-    const statusFiltro = document.getElementById("f_status").value.trim();
-    const respFiltro = document.getElementById("f_resp").value.trim();
+/* ==================== FILTROS, BUSCA E RENDERIZAÇÃO CENTRALIZADA ==================== */
+window.aplicarFiltrosEBusca = function() {
+    const termo = document.getElementById("searchInput").value.toLowerCase();
+    const statusFiltro = document.getElementById("f_status").value;
+    const respFiltro = document.getElementById("f_resp").value;
+    const dtInicio = document.getElementById("f_data_inicio").value;
+    const dtFim = document.getElementById("f_data_fim").value;
+
+    const filtradas = todasAtividades.filter(a => {
+        const texto = `${a.titulo} ${a.responsavel} ${a.goalTitulo}`.toLowerCase();
+        const matchBusca = texto.includes(termo);
+        const matchStatus = !statusFiltro || a.status === statusFiltro;
+        const matchResp = !respFiltro || a.responsavel === respFiltro;
+        let matchData = true;
+        if(dtInicio && a.prazo) matchData = matchData && new Date(a.prazo) >= new Date(dtInicio);
+        if(dtFim && a.prazo) matchData = matchData && new Date(a.prazo) <= new Date(dtFim);
+        
+        return matchBusca && matchStatus && matchResp && matchData;
+    });
+
+    renderizarDashboard(filtradas);
+}
+
+window.limparFiltros = function() {
+    document.getElementById("searchInput").value = "";
+    document.getElementById("f_status").value = "";
+    document.getElementById("f_resp").value = "";
+    document.getElementById("f_data_inicio").value = "";
+    document.getElementById("f_data_fim").value = "";
+    aplicarFiltrosEBusca();
+}
+
+function renderizarDashboard(atividadesFiltradas) {
+    atualizarGrafico(atividadesFiltradas);
+    renderizarTabela(atividadesFiltradas);
+    
+    if(visaoAtual === 'grid') renderizarGrid(atividadesFiltradas);
+    else renderizarKanban(atividadesFiltradas);
+}
+
+/* ==================== VISÃO GRID (GOALS) ==================== */
+function renderizarGrid(atividades) {
+    const container = document.getElementById("lista-goals");
+    container.innerHTML = "";
+
+    todosGoals.forEach(goal => {
+        const ativsDoGoal = atividades.filter(a => a.goalId === goal.id);
+        const termoBusca = document.getElementById("searchInput").value;
+        if(termoBusca && ativsDoGoal.length === 0 && !goal.titulo.toLowerCase().includes(termoBusca)) return;
+
+        let total = ativsDoGoal.length;
+        let concluidas = ativsDoGoal.filter(a => a.status === 'Concluído').length;
+        let porcentagem = total === 0 ? 0 : Math.round((concluidas / total) * 100);
+        let colorBar = porcentagem === 100 ? '#48bb78' : '#4299e1';
+
+        let htmlAtivs = ativsDoGoal.length === 0 
+            ? `<div class="empty-state">Nenhuma atividade visível neste Goal.</div>` 
+            : ativsDoGoal.map(a => `
+                <div class="activity" onclick="prepararModalAtividade('${a.goalId}','${a.id}')">
+                    <div class="activity-header">
+                        <div class="activity-title">${a.titulo}</div>
+                        <button class="btn-icon" onclick="excluirAtividade(event,'${a.goalId}','${a.id}', '${a.titulo}')"><i class="bi bi-trash"></i></button>
+                    </div>
+                    <div class="activity-meta">
+                        <span><i class="bi bi-person"></i> ${a.responsavel || '-'} | <i class="bi bi-calendar"></i> ${formatData(a.prazo)}</span>
+                        <span><span class="badge ${getBadgeClass(a.status)}">${a.status}</span> ${checkAtraso(a.prazo, a.status) ? '<span class="badge badge-atrasado">Atrasado</span>' : ''}</span>
+                    </div>
+                </div>
+            `).join('');
+
+        container.innerHTML += `
+            <div class="goal-card">
+                <div class="goal-header">
+                    <div class="goal-title"><i class="bi bi-bullseye" style="color: #4299e1;"></i> ${goal.titulo}</div>
+                    <button onclick="excluirGoal('${goal.id}', '${goal.titulo}')" class="btn-icon"><i class="bi bi-trash"></i></button>
+                </div>
+                <div class="progress-container">
+                    <div class="progress-header"><span>Progresso Real</span><span>${porcentagem}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${porcentagem}%; background: ${colorBar}"></div></div>
+                </div>
+                <div class="strategic-card" onclick="toggleContent(this)">
+                    <div class="strategic-title"><span><i class="bi bi-list-check"></i> Atividades (${total})</span><i class="bi bi-chevron-down arrow" style="transition:0.3s;"></i></div>
+                    <div class="strategic-content">
+                        <div>${htmlAtivs}</div>
+                        <button onclick="abrirNovaAtividade(event,'${goal.id}')" class="btn btn-primary" style="width:100%; margin-top:15px;"><i class="bi bi-plus"></i> Adicionar Tarefa</button>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+/* ==================== VISÃO KANBAN (DRAG & DROP) ==================== */
+function renderizarKanban(atividades) {
+    const colNao = document.getElementById("items-nao-iniciado");
+    const colAnd = document.getElementById("items-em-andamento");
+    const colConc = document.getElementById("items-concluido");
+    
+    colNao.innerHTML = ""; colAnd.innerHTML = ""; colConc.innerHTML = "";
+    let contNao=0, contAnd=0, contConc=0;
+
+    atividades.forEach(a => {
+        let atrasoBadge = checkAtraso(a.prazo, a.status) ? '<span class="badge badge-atrasado" style="margin-left:auto;">Atrasado</span>' : '';
+        const cardHtml = `
+            <div class="activity" data-id="${a.id}" data-goalid="${a.goalId}" data-titulo="${a.titulo}" onclick="prepararModalAtividade('${a.goalId}','${a.id}')">
+                <div style="font-size:10px; color:#718096; text-transform:uppercase; margin-bottom:5px;">${a.goalTitulo}</div>
+                <div class="activity-title" style="margin-bottom:8px;">${a.titulo}</div>
+                <div class="activity-meta" style="flex-direction:row; align-items:center;">
+                    <i class="bi bi-person-circle"></i> ${a.responsavel || '-'}
+                    ${atrasoBadge}
+                </div>
+            </div>
+        `;
+
+        if(a.status === 'Concluído') { colConc.innerHTML += cardHtml; contConc++; }
+        else if(a.status === 'Em andamento') { colAnd.innerHTML += cardHtml; contAnd++; }
+        else { colNao.innerHTML += cardHtml; contNao++; }
+    });
+
+    document.getElementById("count-nao").innerText = contNao;
+    document.getElementById("count-and").innerText = contAnd;
+    document.getElementById("count-conc").innerText = contConc;
+}
+
+function inicializarKanban() {
+    const options = {
+        group: 'kanban',
+        animation: 150,
+        ghostClass: 'sortable-ghost',
+        onEnd: async function (evt) {
+            const itemEl = evt.item;
+            const novoStatus = evt.to.parentElement.dataset.status;
+            const ativId = itemEl.dataset.id;
+            const goalId = itemEl.dataset.goalid;
+            const tituloAtividade = itemEl.dataset.titulo;
+            
+            await updateDoc(doc(db,"goals",goalId,"atividades",ativId), { status: novoStatus });
+            
+            // Registra a alteração no Log de notificações
+            registrarLog('Status Alterado', `A atividade "${tituloAtividade}" foi movida para "${novoStatus}".`, 'bi-arrows-move');
+
+            const index = todasAtividades.findIndex(a => a.id === ativId);
+            if(index > -1) todasAtividades[index].status = novoStatus;
+            
+            aplicarFiltrosEBusca(); 
+        }
+    };
+    new Sortable(document.getElementById("items-nao-iniciado"), options);
+    new Sortable(document.getElementById("items-em-andamento"), options);
+    new Sortable(document.getElementById("items-concluido"), options);
+}
+
+/* ==================== TABELA ==================== */
+function renderizarTabela(atividades) {
     const tbody = document.querySelector("#tabelaAtividades tbody");
     tbody.innerHTML = "";
 
-    // Filtra os dados que já estão na memória
-    const filtradas = todasAtividades.filter(a => {
-        const matchStatus = statusFiltro === "" || a.status === statusFiltro;
-        const matchResp = respFiltro === "" || a.responsavel === respFiltro;
-        return matchStatus && matchResp;
-    });
+    if(atividades.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" class="empty-state">Nenhum dado encontrado para os filtros atuais.</td></tr>`;
+        return;
+    }
 
-    filtradas.forEach(data => {
+    atividades.forEach(a => {
         tbody.innerHTML += `
             <tr>
-                <td>${data.goalTitulo}</td>
-                <td>${data.titulo}</td>
-                <td>${data.responsavel}</td>
-                <td>${data.prazo}</td>
-                <td>${data.status}</td>
-                <td>
-                    <button class="btn btn-primary" onclick="abrirDetalheAtividade('${data.goalId}','${data.id}','${data.titulo}','${data.responsavel}','${data.prazo}','${data.status}','${data.acompanhamento}')">Editar</button>
-                    <button class="btn btn-danger" onclick="excluirAtividade(event,'${data.goalId}','${data.id}')">Excluir</button>
+                <td style="font-weight: 500;">${a.goalTitulo}</td>
+                <td>${a.titulo}</td>
+                <td>${a.responsavel || '-'}</td>
+                <td>${formatData(a.prazo)} ${checkAtraso(a.prazo, a.status) ? '<i class="bi bi-exclamation-circle text-danger" title="Atrasado" style="color:red"></i>' : ''}</td>
+                <td><span class="badge ${getBadgeClass(a.status)}">${a.status}</span></td>
+                <td style="text-align: right;">
+                    <button class="btn btn-primary" style="padding: 6px 10px;" onclick="prepararModalAtividade('${a.goalId}','${a.id}')"><i class="bi bi-pencil"></i></button>
+                    <button class="btn btn-danger" style="padding: 6px 10px;" onclick="excluirAtividade(event,'${a.goalId}','${a.id}', '${a.titulo}')"><i class="bi bi-trash"></i></button>
                 </td>
             </tr>
         `;
     });
 }
 
-/* ==================== ACORDEÃO ==================== */
-window.toggleContent=function(card){
-    const content=card.querySelector(".strategic-content");
-    const arrow=card.querySelector(".arrow");
-    if(content.style.display==="block"){content.style.display="none";arrow.style.transform="rotate(0deg)";}
-    else{content.style.display="block";arrow.style.transform="rotate(180deg)";}
+/* ==================== GRÁFICO (CHART.JS) ==================== */
+function atualizarGrafico(atividades) {
+    let nao=0, and=0, conc=0;
+    atividades.forEach(a => {
+        if(a.status === 'Concluído') conc++;
+        else if(a.status === 'Em andamento') and++;
+        else nao++;
+    });
+
+    const ctx = document.getElementById('statusChart').getContext('2d');
+    if(meuGrafico) meuGrafico.destroy();
+    
+    meuGrafico = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Não Iniciado', 'Andamento', 'Concluído'],
+            datasets: [{
+                data: [nao, and, conc],
+                backgroundColor: ['#e2e8f0', '#f6e05e', '#48bb78'],
+                borderWidth: 0
+            }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: {family: 'Inter'} } } },
+            cutout: '70%'
+        }
+    });
 }
 
-carregarGoals();
+/* ==================== TROCA DE VISÃO ==================== */
+window.mudarVisao = function(visao) {
+    visaoAtual = visao;
+    document.getElementById("btn-grid").classList.remove("active");
+    document.getElementById("btn-kanban").classList.remove("active");
+    
+    if(visao === 'grid') {
+        document.getElementById("btn-grid").classList.add("active");
+        document.getElementById("lista-goals").style.display = "grid";
+        document.getElementById("kanban-board").style.display = "none";
+    } else {
+        document.getElementById("btn-kanban").classList.add("active");
+        document.getElementById("lista-goals").style.display = "none";
+        document.getElementById("kanban-board").style.display = "flex";
+    }
+    aplicarFiltrosEBusca();
+}
+
+/* ==================== MODAL ATIVIDADE E COMENTÁRIOS ==================== */
+window.abrirNovaAtividade = function(event, goalId) {
+    event.stopPropagation();
+    detalheGoalId = goalId; detalheAtivId = null; comentariosAtuais = [];
+    document.getElementById("d_titulo").value = ""; document.getElementById("d_resp").value = "";
+    document.getElementById("d_prazo").value = ""; document.getElementById("d_status").value = "Não iniciado";
+    document.getElementById("novo_comentario").value = "";
+    renderizarComentarios();
+    document.getElementById("modalDetalheAtividade").style.display = "flex";
+}
+
+window.prepararModalAtividade = function(goalId, ativId) {
+    const ativ = todasAtividades.find(a => a.id === ativId);
+    if(!ativ) return;
+    detalheGoalId = goalId; detalheAtivId = ativId; comentariosAtuais = ativ.comentarios || [];
+    
+    document.getElementById("d_titulo").value = ativ.titulo; 
+    document.getElementById("d_resp").value = ativ.responsavel;
+    document.getElementById("d_prazo").value = ativ.prazo; 
+    document.getElementById("d_status").value = ativ.status;
+    document.getElementById("novo_comentario").value = "";
+    
+    renderizarComentarios();
+    document.getElementById("modalDetalheAtividade").style.display = "flex";
+}
+
+function renderizarComentarios() {
+    const container = document.getElementById("historico_container");
+    if(comentariosAtuais.length === 0) {
+        container.innerHTML = `<div class="empty-state" style="padding:10px;">Sem histórico de acompanhamento ainda.</div>`;
+        return;
+    }
+    container.innerHTML = comentariosAtuais.map(c => `
+        <div class="comment-item">
+            <span class="comment-date">${c.dataHora}</span>
+            ${c.texto}
+        </div>
+    `).join('');
+    container.scrollTop = container.scrollHeight;
+}
+
+window.salvarDetalheAtividade = async function() {
+    const titulo = document.getElementById("d_titulo").value;
+    if(!titulo) return Swal.fire('Atenção', 'Título obrigatório!', 'warning');
+
+    const novoComentarioText = document.getElementById("novo_comentario").value.trim();
+    if(novoComentarioText) {
+        const dataStr = new Date().toLocaleString('pt-BR');
+        comentariosAtuais.push({ texto: novoComentarioText, dataHora: dataStr });
+    }
+
+    const dados = {
+        titulo: titulo,
+        responsavel: document.getElementById("d_resp").value,
+        prazo: document.getElementById("d_prazo").value,
+        status: document.getElementById("d_status").value,
+        comentarios: comentariosAtuais
+    };
+    
+    if (detalheAtivId) {
+        await updateDoc(doc(db,"goals",detalheGoalId,"atividades",detalheAtivId), dados);
+        registrarLog('Atividade Atualizada', `A atividade "${titulo}" foi editada.`, 'bi-pencil-square');
+        Swal.fire({title: 'Salvo!', icon: 'success', timer: 1200, showConfirmButton: false});
+    } else {
+        await addDoc(collection(db,"goals",detalheGoalId,"atividades"), dados);
+        registrarLog('Nova Atividade', `A atividade "${titulo}" foi criada.`, 'bi-plus-circle');
+        Swal.fire({title: 'Criada!', icon: 'success', timer: 1200, showConfirmButton: false});
+    }
+    
+    fecharModal('modalDetalheAtividade');
+    carregarTudo(); 
+}
+
+/* ==================== OUTRAS FUNÇÕES (GOAL, ACORDEÃO, EXCLUIR) ==================== */
+window.fecharModal = (id) => { document.getElementById(id).style.display = "none"; }
+window.abrirFormGoal = () => { document.getElementById("goalTitulo").value=""; document.getElementById("modalGoal").style.display="flex"; }
+
+window.salvarGoal = async function(){
+    const titulo = document.getElementById("goalTitulo").value.trim();
+    if(!titulo) return;
+    await addDoc(collection(db,"goals"),{titulo});
+    
+    registrarLog('Novo Goal Criado', `O Goal "${titulo}" foi adicionado.`, 'bi-bullseye');
+    
+    fecharModal('modalGoal');
+    carregarTudo();
+}
+
+window.excluirAtividade = function(event, goalId, ativId, tituloAtividade){
+    event.stopPropagation();
+    Swal.fire({
+        title: 'Excluir atividade?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#e53e3e', confirmButtonText: 'Sim, excluir!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            await deleteDoc(doc(db,"goals",goalId,"atividades",ativId));
+            registrarLog('Atividade Removida', `A atividade "${tituloAtividade}" foi deletada.`, 'bi-trash');
+            carregarTudo();
+        }
+    });
+}
+
+window.excluirGoal = function(id, tituloGoal){
+    Swal.fire({
+        title: 'Deletar Goal Inteiro?', text: "As atividades dentro dele também sumirão!", icon: 'error', showCancelButton: true, confirmButtonColor: '#e53e3e', confirmButtonText: 'Sim, deletar!'
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            await deleteDoc(doc(db,"goals",id));
+            registrarLog('Goal Excluído', `O Goal "${tituloGoal}" e todas as suas atividades foram removidos.`, 'bi-trash-fill');
+            carregarTudo();
+        }
+    });
+}
+
+window.toggleContent = function(card){
+    const content = card.querySelector(".strategic-content");
+    const arrow = card.querySelector(".arrow");
+    if(content.style.display==="block") { content.style.display="none"; arrow.style.transform="rotate(0deg)"; }
+    else { content.style.display="block"; arrow.style.transform="rotate(180deg)"; }
+}
+
+// Inicializa a aplicação
+inicializarKanban();
+escutarNotificacoes();
+carregarTudo();
+
 </script>
 </body>
 </html>
