@@ -1,64 +1,83 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>OGSM Dashboard v2.0</title>
+<meta charset="UTF-8">
+<title>OGSM Dashboard v2.2</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:"Inter", sans-serif; background:#eef1f5; padding-bottom:80px; }
 
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#355ca8,#4a8fe0);
+    padding:26px; color:white; display:flex; gap:15px;
+    position:sticky; top:0; z-index:20; align-items:center;
+    box-shadow:0 4px 15px rgba(0,0,0,0.18);
+}
 
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: "Inter", sans-serif; background: #f3f5f7; padding-bottom: 80px; }
+/* GRID DE GOALS */
+.container { padding:25px; max-width:1200px; margin:auto;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(380px,1fr)); gap:25px;
+}
 
-        .header {
-            background: linear-gradient(135deg,#3b6cb7,#4a90e2);
-            padding: 22px; color: white; display:flex; gap:15px;
-            position:sticky; top:0; z-index:20; align-items:center;
-        }
+/* CARD DO GOAL */
+.goal-card { background:#fff; padding:28px; border-radius:20px;
+    box-shadow:0 6px 20px rgba(0,0,0,0.07); transition:.25s; border:1px solid #e3e6ea;
+}
+.goal-card:hover { transform:translateY(-6px); box-shadow:0 10px 28px rgba(0,0,0,0.12); }
 
-        .container { padding: 20px; max-width: 900px; margin: auto; }
+/* STRATEGIC CARD */
+.strategic-card { background:#f7f9fc; padding:18px; border-radius:16px; margin-top:20px;
+    border-left:6px solid #4a90e2; cursor:pointer; transition:.2s;
+}
+.strategic-card:hover{ background:#eef2f9; }
+.strategic-title { display:flex; justify-content:space-between; align-items:center;
+    font-size:17px; font-weight:600;
+}
+.strategic-content{ margin-top:18px; display:none; }
 
-        .goal-card {
-            background:#fff; padding:25px; border-radius:18px; margin-bottom:35px;
-            box-shadow:0 5px 18px rgba(0,0,0,0.09); transition:.25s;
-        }
-        .goal-card:hover { transform:translateY(-4px); }
+/* ACTIVITIES */
+.activity { background:#fff; padding:16px; border-radius:14px; margin-bottom:12px;
+    border-left:6px solid #7b61ff; box-shadow:0 3px 12px rgba(0,0,0,0.08);
+    cursor:pointer; transition:0.2s; position:relative;
+}
+.activity:hover{ background:#f1f4fb; }
 
-        .strategic-card {
-            background:#f6f8fb; padding:18px; border-radius:14px;
-            margin-top:18px; border-left:8px solid #4a90e2; cursor:pointer;
-        }
+/* INDICADOR */
+.status-indicador{ font-size:14px; margin-left:6px; }
 
-        .strategic-content { margin-top:15px; display:none; }
+/* BUTTONS */
+.btn{ padding:12px; border:none; border-radius:10px; cursor:pointer; margin-top:12px; font-size:15px; font-weight:600; }
+.btn-primary{ background:#4a90e2; color:white; box-shadow:0 3px 8px rgba(74,144,226,0.35); }
+.btn-primary:hover{ background:#3b7acc; }
+.btn-danger{ background:#d9534f; color:white; box-shadow:0 3px 8px rgba(217,83,79,0.35); }
+.btn-danger:hover{ background:#c74340; }
 
-        .activity {
-            background:#fff; padding:16px; border-radius:12px;
-            margin-bottom:12px; border-left:6px solid #7b61ff;
-            box-shadow:0 2px 10px rgba(0,0,0,0.05);
-        }
+/* MODAL GERAL */
+.modal{ display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+    background:rgba(0,0,0,0.55); display:flex; align-items:center; justify-content:center; z-index:999; }
+.modal-content{ background:white; padding:25px; width:420px; border-radius:14px; max-height:90vh; overflow-y:auto; }
 
-        .status-indicador {
-            font-size: 16px;
-            margin-left: 8px;
-        }
+/* MODAL DETALHE DA ATIVIDADE */
+#modalDetalheAtividade .modal-content{ width:500px; }
 
-        .btn {
-            padding:10px; border:none; border-radius:8px;
-            cursor:pointer; margin-top:12px;
-        }
-
-        .btn-primary { background:#4a90e2; color:white; }
-        .btn-danger { background:#d9534f; color:white; }
-    </style>
+/* TABELA FINAL */
+.table-container { max-width:1200px; margin:auto; margin-top:40px; padding:0 20px; }
+.table-container table{ width:100%; border-collapse:collapse; background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 18px rgba(0,0,0,0.08);}
+.table-container th, .table-container td{ padding:12px 15px; border-bottom:1px solid #e0e0e0; text-align:left; }
+.table-container th{ background:#4a90e2; color:white; font-weight:600; }
+.table-container tr:hover{ background:#f1f4fb; }
+.filter-group{ margin-bottom:15px; display:flex; gap:15px; align-items:center; }
+.filter-group label{ font-weight:600; }
+.filter-group select{ padding:6px 10px; border-radius:8px; border:1px solid #ccc; }
+</style>
 </head>
-
 <body>
 
 <div class="header">
     <i class="bi bi-kanban"></i>
     <h2 style="margin-right:auto;">OGSM Dashboard</h2>
-
-    <!-- BOTÃO PARA CRIAR NOVO GOAL -->
     <button onclick="abrirFormGoal()" class="btn btn-primary">+ Novo Goal</button>
 </div>
 
@@ -66,74 +85,71 @@
     <!-- GOALS DO FIRESTORE APARECEM AQUI -->
 </div>
 
-<!-- -----------------------
-     MODAL DE GOAL
------------------------- -->
-<div id="modalGoal" style="
-    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.55); display:flex; align-items:center;
-    justify-content:center; z-index:999;">
-    
-    <div style="background:white; padding:25px; width:420px; border-radius:14px;">
+<!-- MODAL GOAL -->
+<div id="modalGoal" class="modal">
+    <div class="modal-content">
         <h2 id="tituloGoalForm">Novo Goal</h2>
-
         <label>Título do Goal</label>
         <input id="goalTitulo" type="text" style="width:100%; padding:8px; margin-top:10px;">
-
         <button onclick="salvarGoal()" class="btn btn-primary" style="width:100%; margin-top:20px;">Salvar</button>
         <button onclick="fecharModalGoal()" class="btn" style="width:100%; background:#ccc; margin-top:10px;">Cancelar</button>
     </div>
 </div>
 
-<!-- -----------------------
-     MODAL DE ATIVIDADES
------------------------- -->
-<div id="modalAtividade" style="
-    display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-    background:rgba(0,0,0,0.55); display:flex; align-items:center;
-    justify-content:center; z-index:999;">
-    
-    <div style="background:white; padding:25px; width:420px; border-radius:14px;">
-        <h2 id="tituloAtividadeForm">Nova Atividade</h2>
-
+<!-- MODAL DETALHE ATIVIDADE -->
+<div id="modalDetalheAtividade" class="modal">
+    <div class="modal-content">
+        <h2>Detalhes da Atividade</h2>
         <label>Título</label>
-        <input id="a_titulo" type="text" style="width:100%; padding:8px; margin-bottom:12px;">
-
+        <input id="d_titulo" type="text" style="width:100%; padding:8px; margin-bottom:12px;">
         <label>Responsável</label>
-        <input id="a_resp" type="text" style="width:100%; padding:8px; margin-bottom:12px;">
-
+        <input id="d_resp" type="text" style="width:100%; padding:8px; margin-bottom:12px;">
         <label>Prazo</label>
-        <input id="a_prazo" type="date" style="width:100%; padding:8px; margin-bottom:12px;">
-
+        <input id="d_prazo" type="date" style="width:100%; padding:8px; margin-bottom:12px;">
         <label>Status</label>
-        <select id="a_status" style="width:100%; padding:8px; margin-bottom:12px;">
+        <select id="d_status" style="width:100%; padding:8px; margin-bottom:12px;">
             <option>Não iniciado</option>
             <option>Em andamento</option>
             <option>Concluído</option>
         </select>
-
         <label>Acompanhamento</label>
-        <textarea id="a_acomp" rows="4" style="width:100%; padding:8px;"></textarea>
-
-        <button onclick="salvarAtividade()" class="btn btn-primary" style="width:100%; margin-top:20px;">Salvar</button>
-        <button onclick="fecharModalAtividade()" class="btn" style="width:100%; background:#ccc; margin-top:10px;">Cancelar</button>
+        <textarea id="d_acomp" rows="4" style="width:100%; padding:8px;"></textarea>
+        <button onclick="salvarDetalheAtividade()" class="btn btn-primary" style="width:100%; margin-top:20px;">Salvar</button>
+        <button onclick="fecharModalDetalhe()" class="btn" style="width:100%; background:#ccc; margin-top:10px;">Fechar</button>
     </div>
 </div>
 
+<!-- TABELA DE TODAS ATIVIDADES -->
+<div class="table-container">
+    <div class="filter-group">
+        <label>Status:</label>
+        <select id="f_status" onchange="filtrarTabela()">
+            <option value="">Todos</option>
+            <option>Não iniciado</option>
+            <option>Em andamento</option>
+            <option>Concluído</option>
+        </select>
+        <label>Responsável:</label>
+        <select id="f_resp" onchange="filtrarTabela()"><option value="">Todos</option></select>
+    </div>
+    <table id="tabelaAtividades">
+        <thead>
+            <tr>
+                <th>Goal</th>
+                <th>Título</th>
+                <th>Responsável</th>
+                <th>Prazo</th>
+                <th>Status</th>
+                <th>Ação</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
 
-
-<!-- ================================
-       FIREBASE SCRIPT
-================================ -->
 <script type="module">
-
-/* -------------------------------------
-     CONFIG FIREBASE
--------------------------------------- */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { 
-    getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc 
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, collection, addDoc, getDocs, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 const firebaseConfig = {
     apiKey: "AIzaSyBRVfdcyHllNOuGc-tp-sFuh8UA9S1uOOE",
@@ -148,217 +164,183 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+/* -------------------------------
+      VARIÁVEIS
+-------------------------------- */
+let goalEditId = null;
+let currentGoalId = null;
+let atividadeEditId = null;
+let detalheGoalId = null;
+let detalheAtivId = null;
+let todasAtividades = [];
 
 /* -------------------------------------
       CARREGAR TODOS OS GOALS
 -------------------------------------- */
-async function carregarGoals() {
-    const container = document.getElementById("lista-goals");
-    container.innerHTML = "";
-
-    const q = await getDocs(collection(db, "goals"));
-
-    q.forEach(async goalDoc => {
-        const goal = goalDoc.data();
-
-        container.innerHTML += `
-            <div class="goal-card" id="goal-${goalDoc.id}">
-                <h2><i class="bi bi-bullseye"></i> ${goal.titulo}</h2>
-
-                <div class="strategic-card" onclick="toggleContent(this)">
-                    <div class="strategic-title">
-                        <span>Atividades</span>
-                        <i class="bi bi-chevron-down arrow"></i>
-                    </div>
-
-                    <div class="strategic-content" id="ativ-${goalDoc.id}">
-                        <p>Carregando atividades...</p>
-                    </div>
-
-                    <button onclick="abrirFormAtividade(event, '${goalDoc.id}')" 
-                            class="btn btn-primary">
-                        + Nova Atividade
-                    </button>
+async function carregarGoals(){
+    const container=document.getElementById("lista-goals");
+    container.innerHTML="";
+    const q = await getDocs(collection(db,"goals"));
+    q.forEach(async goalDoc=>{
+        const goal=goalDoc.data();
+        container.innerHTML+=`
+        <div class="goal-card" id="goal-${goalDoc.id}">
+            <h2><i class="bi bi-bullseye"></i> ${goal.titulo}</h2>
+            <div class="strategic-card" onclick="toggleContent(this)">
+                <div class="strategic-title">
+                    <span>Atividades</span>
+                    <i class="bi bi-chevron-down arrow"></i>
                 </div>
-
-                <button onclick="excluirGoal('${goalDoc.id}')" class="btn btn-danger" style="margin-top:15px;">Excluir Goal</button>
+                <div class="strategic-content" id="ativ-${goalDoc.id}">
+                    <p>Carregando atividades...</p>
+                </div>
+                <button onclick="abrirFormAtividade(event,'${goalDoc.id}')" class="btn btn-primary">+ Nova Atividade</button>
             </div>
-        `;
-
+            <button onclick="excluirGoal('${goalDoc.id}')" class="btn btn-danger" style="margin-top:15px;">Excluir Goal</button>
+        </div>`;
         carregarAtividades(goalDoc.id);
     });
 }
 
-carregarGoals();
-
-
-
 /* -------------------------------------
-     CARREGAR ATIVIDADES DO GOAL
+      CARREGAR ATIVIDADES
 -------------------------------------- */
-async function carregarAtividades(goalId) {
-    const lista = document.getElementById("ativ-" + goalId);
-    lista.innerHTML = "";
-
-    const atividadesRef = collection(db, "goals", goalId, "atividades");
+async function carregarAtividades(goalId){
+    const lista=document.getElementById("ativ-"+goalId);
+    lista.innerHTML="";
+    const atividadesRef = collection(db,"goals",goalId,"atividades");
     const q = await getDocs(atividadesRef);
-
-    q.forEach(ativDoc => {
+    q.forEach(ativDoc=>{
         const a = ativDoc.data();
-
         const hoje = new Date();
         const prazo = new Date(a.prazo);
-        const atrasada = prazo < hoje && a.status !== "Concluído";
-
-        const indicador = atrasada 
-            ? "<span class='status-indicador' style='color:red'>●</span>"
-            : "<span class='status-indicador' style='color:green'>●</span>";
+        const atrasada = prazo<hoje && a.status!=="Concluído";
+        const indicador = atrasada ? "<span class='status-indicador' style='color:red'>●</span>" : "<span class='status-indicador' style='color:green'>●</span>";
 
         lista.innerHTML += `
-            <div class="activity">
-                <div><b>Título:</b> ${a.titulo} ${indicador}</div>
-                <div><b>Responsável:</b> ${a.responsavel}</div>
-                <div><b>Prazo:</b> ${a.prazo}</div>
-                <div><b>Status:</b> ${a.status}</div>
-                <div><b>Acompanhamento:</b> ${a.acompanhamento}</div>
+        <div class="activity" onclick="abrirDetalheAtividade('${goalId}','${ativDoc.id}','${a.titulo}','${a.responsavel}','${a.prazo}','${a.status}','${a.acompanhamento}')">
+            <div><b>Título:</b> ${a.titulo} ${indicador}</div>
+            <div><b>Responsável:</b> ${a.responsavel}</div>
+            <div><b>Prazo:</b> ${a.prazo}</div>
+            <button class="btn btn-danger" onclick="excluirAtividade(event,'${goalId}','${ativDoc.id}')">Excluir</button>
+        </div>`;
+    });
 
-                <button class="btn btn-primary" onclick="editarAtividade('${goalId}','${ativDoc.id}','${a.titulo}','${a.responsavel}','${a.prazo}','${a.status}','${a.acompanhamento}')">Editar</button>
-                <button class="btn btn-danger" onclick="excluirAtividade('${goalId}','${ativDoc.id}')">Excluir</button>
-            </div>
-        `;
+    carregarTabela();
+}
+
+/* -------------------------------------
+      TABELA DE ATIVIDADES
+-------------------------------------- */
+async function carregarTabela(){
+    todasAtividades=[];
+    const tbody=document.querySelector("#tabelaAtividades tbody");
+    tbody.innerHTML="";
+    const goalsSnap = await getDocs(collection(db,"goals"));
+    let responsaveisSet = new Set();
+
+    for(const goalDoc of goalsSnap.docs){
+        const goal = goalDoc.data();
+        const q = await getDocs(collection(db,"goals",goalDoc.id,"atividades"));
+        q.forEach(ativ=>{
+            const a=ativ.data();
+            todasAtividades.push({goalId:goalDoc.id, goalTitulo:goal.titulo, ...a, ativId:ativ.id});
+            responsaveisSet.add(a.responsavel);
+        });
+    }
+
+    // popular filtro de responsável
+    const fResp = document.getElementById("f_resp");
+    fResp.innerHTML="<option value=''>Todos</option>";
+    responsaveisSet.forEach(r=>fResp.innerHTML+=`<option>${r}</option>`);
+
+    filtrarTabela();
+}
+
+function filtrarTabela(){
+    const status = document.getElementById("f_status").value;
+    const resp = document.getElementById("f_resp").value;
+    const tbody=document.querySelector("#tabelaAtividades tbody");
+    tbody.innerHTML="";
+    todasAtividades.forEach(a=>{
+        if((!status || a.status===status)&&(!resp||a.responsavel===resp)){
+            tbody.innerHTML+=`
+            <tr>
+                <td>${a.goalTitulo}</td>
+                <td>${a.titulo}</td>
+                <td>${a.responsavel}</td>
+                <td>${a.prazo}</td>
+                <td>${a.status}</td>
+                <td><button class="btn btn-primary" onclick="abrirDetalheAtividade('${a.goalId}','${a.ativId}','${a.titulo}','${a.responsavel}','${a.prazo}','${a.status}','${a.acompanhamento}')">Editar</button>
+                <button class="btn btn-danger" onclick="excluirAtividade(event,'${a.goalId}','${a.ativId}')">Excluir</button></td>
+            </tr>`;
+        }
     });
 }
 
-
-
 /* -------------------------------------
-     CRUD - GOALS
+      CRUD GOAL
 -------------------------------------- */
-let goalEditId = null;
-
-window.abrirFormGoal = function() {
-    goalEditId = null;
-    document.getElementById("tituloGoalForm").innerText = "Novo Goal";
-    document.getElementById("goalTitulo").value = "";
-    document.getElementById("modalGoal").style.display = "flex";
-};
-
-window.fecharModalGoal = function() {
-    document.getElementById("modalGoal").style.display = "none";
-};
-
-window.salvarGoal = async function() {
-    const titulo = document.getElementById("goalTitulo").value;
-
-    if (!titulo.trim()) return alert("Digite um título");
-
-    await addDoc(collection(db, "goals"), { titulo });
-
+window.abrirFormGoal=function(){ goalEditId=null; document.getElementById("tituloGoalForm").innerText="Novo Goal"; document.getElementById("goalTitulo").value=""; document.getElementById("modalGoal").style.display="flex"; }
+window.fecharModalGoal=function(){ document.getElementById("modalGoal").style.display="none"; }
+window.salvarGoal=async function(){ 
+    const titulo=document.getElementById("goalTitulo").value;
+    if(!titulo.trim()) return alert("Digite um título");
+    await addDoc(collection(db,"goals"),{titulo});
     fecharModalGoal();
     carregarGoals();
-};
-
-window.excluirGoal = async function(id) {
-    if (!confirm("Excluir este goal?")) return;
-
-    await deleteDoc(doc(db, "goals", id));
-    carregarGoals();
-};
-
-
+}
+window.excluirGoal=async function(id){ if(!confirm("Excluir este goal?")) return; await deleteDoc(doc(db,"goals",id)); carregarGoals(); }
 
 /* -------------------------------------
-     CRUD - ATIVIDADES
+      CRUD ATIVIDADE
 -------------------------------------- */
-let currentGoalId = null;
-let atividadeEditId = null;
-
-window.abrirFormAtividade = function(event, goalId) {
-    event.stopPropagation();
-
-    atividadeEditId = null;
-    currentGoalId = goalId;
-
-    document.getElementById("tituloAtividadeForm").innerText = "Nova Atividade";
-
-    document.getElementById("a_titulo").value = "";
-    document.getElementById("a_resp").value = "";
-    document.getElementById("a_prazo").value = "";
-    document.getElementById("a_status").value = "Não iniciado";
-    document.getElementById("a_acomp").value = "";
-
-    document.getElementById("modalAtividade").style.display = "flex";
-};
-
-window.editarAtividade = function(goalId, ativId, titulo, resp, prazo, status, acomp) {
-    atividadeEditId = ativId;
-    currentGoalId = goalId;
-
-    document.getElementById("tituloAtividadeForm").innerText = "Editar Atividade";
-
-    document.getElementById("a_titulo").value = titulo;
-    document.getElementById("a_resp").value = resp;
-    document.getElementById("a_prazo").value = prazo;
-    document.getElementById("a_status").value = status;
-    document.getElementById("a_acomp").value = acomp;
-
-    document.getElementById("modalAtividade").style.display = "flex";
-};
-
-window.fecharModalAtividade = function() {
-    document.getElementById("modalAtividade").style.display = "none";
-};
-
-window.salvarAtividade = async function() {
-
-    const dados = {
-        titulo: document.getElementById("a_titulo").value,
-        responsavel: document.getElementById("a_resp").value,
-        prazo: document.getElementById("a_prazo").value,
-        status: document.getElementById("a_status").value,
-        acompanhamento: document.getElementById("a_acomp").value
+window.abrirDetalheAtividade=function(goalId,ativId,titulo,resp,prazo,status,acomp){
+    detalheGoalId=goalId; detalheAtivId=ativId;
+    document.getElementById("d_titulo").value=titulo;
+    document.getElementById("d_resp").value=resp;
+    document.getElementById("d_prazo").value=prazo;
+    document.getElementById("d_status").value=status;
+    document.getElementById("d_acomp").value=acomp;
+    document.getElementById("modalDetalheAtividade").style.display="flex";
+}
+window.fecharModalDetalhe=function(){ document.getElementById("modalDetalheAtividade").style.display="none"; }
+window.salvarDetalheAtividade=async function(){
+    const dados={
+        titulo:document.getElementById("d_titulo").value,
+        responsavel:document.getElementById("d_resp").value,
+        prazo:document.getElementById("d_prazo").value,
+        status:document.getElementById("d_status").value,
+        acompanhamento:document.getElementById("d_acomp").value
     };
+    const ref=doc(db,"goals",detalheGoalId,"atividades",detalheAtivId);
+    await updateDoc(ref,dados);
+    fecharModalDetalhe();
+    carregarAtividades(detalheGoalId);
+}
 
-    const atividadesRef = collection(db, "goals", currentGoalId, "atividades");
-
-    if (atividadeEditId) {
-        const ref = doc(db, "goals", currentGoalId, "atividades", atividadeEditId);
-        await updateDoc(ref, dados);
-    } else {
-        await addDoc(atividadesRef, dados);
-    }
-
-    fecharModalAtividade();
-    carregarAtividades(currentGoalId);
-};
-
-window.excluirAtividade = async function(goalId, ativId) {
-    if (!confirm("Excluir atividade?")) return;
-
-    const ref = doc(db, "goals", goalId, "atividades", ativId);
+/* -------------------------------
+    EXCLUIR ATIVIDADE
+-------------------------------- */
+window.excluirAtividade=async function(event,goalId,ativId){
+    event.stopPropagation();
+    if(!confirm("Excluir atividade?")) return;
+    const ref=doc(db,"goals",goalId,"atividades",ativId);
     await deleteDoc(ref);
-
     carregarAtividades(goalId);
-};
-
-
+}
 
 /* -------------------------------------
-     ACORDEÃO
+      ACORDEÃO
 -------------------------------------- */
-window.toggleContent = function(card) {
-    const content = card.querySelector(".strategic-content");
-    const arrow = card.querySelector(".arrow");
+window.toggleContent=function(card){
+    const content=card.querySelector(".strategic-content");
+    const arrow=card.querySelector(".arrow");
+    if(content.style.display==="block"){ content.style.display="none"; arrow.style.transform="rotate(0deg)"; }
+    else{ content.style.display="block"; arrow.style.transform="rotate(180deg)"; }
+}
 
-    if (content.style.display === "block") {
-        content.style.display = "none";
-        arrow.style.transform = "rotate(0deg)";
-    } else {
-        content.style.display = "block";
-        arrow.style.transform = "rotate(180deg)";
-    }
-};
-
+carregarGoals();
 </script>
 
 </body>
